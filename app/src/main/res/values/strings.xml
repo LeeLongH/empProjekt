@@ -9,6 +9,6 @@
     <string name="enter_name">Enter Name</string>"
     <string name="enter_surname">Enter Surname</string>
     <string name="register">Register now</string>
-    <string name="select_profession">select Profession</string>
+    <string name="password">Password</string>
 
 </resources>

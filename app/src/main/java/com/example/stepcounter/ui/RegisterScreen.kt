@@ -39,7 +39,12 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 
 
 @Composable
@@ -47,7 +52,8 @@ fun RegisterScreen(viewModel: StepCounterViewModel = viewModel(), navController:
     // State variables for user input
     var nameInput by remember { mutableStateOf("") }
     var surnameInput by remember { mutableStateOf("") }
-    var selectedOption by remember { mutableStateOf("") }
+    var passwordInput by remember { mutableStateOf("") }
+    var selectedOption by remember { mutableStateOf("") } // Inicializacija za radio gumbe
 
     // Handle registration status (optional)
     val uiState by viewModel.uiState.collectAsState()
@@ -59,18 +65,36 @@ fun RegisterScreen(viewModel: StepCounterViewModel = viewModel(), navController:
     val context = LocalContext.current
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp).clickable {
-            // Dismiss the keyboard when clicking outside
-            keyboardController?.hide()
-        },
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .clickable {
+                // Dismiss the keyboard when clicking outside
+                keyboardController?.hide()
+            },
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
+        Text(
+            text = "Registracija",
+            style = TextStyle(
+                fontSize = 35.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black,
+                letterSpacing = 0.2.sp
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 30.dp),
+            textAlign = TextAlign.Center
+        )
+
+
         // TextField for name input
         OutlinedTextField(
             value = nameInput,
             onValueChange = {
-                // Limit name input to 15 characters
                 if (it.length <= 15) {
                     nameInput = it
                 }
@@ -89,7 +113,6 @@ fun RegisterScreen(viewModel: StepCounterViewModel = viewModel(), navController:
         OutlinedTextField(
             value = surnameInput,
             onValueChange = {
-                // Limit surname input to 15 characters
                 if (it.length <= 15) {
                     surnameInput = it
                 }
@@ -97,26 +120,89 @@ fun RegisterScreen(viewModel: StepCounterViewModel = viewModel(), navController:
             label = { Text("Surname") },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions.Default.copy(
-                imeAction = ImeAction.Done,
+                imeAction = ImeAction.Next,
                 keyboardType = KeyboardType.Text
             )
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // TextField for selecting profession (replace with your own selection UI)
+        // Password input field
         OutlinedTextField(
-            value = selectedOption,
-            onValueChange = { selectedOption = it },
-            label = { Text("Select Profession") },
-            modifier = Modifier.fillMaxWidth()
+            value = passwordInput,
+            onValueChange = {
+                if (it.length <= 20) {
+                    passwordInput = it
+                }
+            },
+            label = { Text("Password") },
+            modifier = Modifier.fillMaxWidth(),
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions.Default.copy(
+                imeAction = ImeAction.Done,
+                keyboardType = KeyboardType.Password
+            )
         )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            // Title
+            Text(
+                text = "Kaj si?",
+                style = TextStyle(
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                    letterSpacing = 0.2.sp
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                textAlign = TextAlign.Center
+            )
+
+            // Radio buttons
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Hunter option
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    RadioButton(
+                        selected = selectedOption == "Hunter",
+                        onClick = { selectedOption = "Hunter" }
+                    )
+                    Text(
+                        text = "Hunter",
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
+                }
+
+                // Hunter Family option
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    RadioButton(
+                        selected = selectedOption == "Hunter Family",
+                        onClick = { selectedOption = "Hunter Family" }
+                    )
+                    Text(
+                        text = "Hunter Family",
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
+                }
+            }
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         // Register button
         Button(onClick = {
-            if (nameInput.isNotBlank() && surnameInput.isNotBlank() && selectedOption.isNotBlank()) {
+            if (nameInput.isNotBlank() && surnameInput.isNotBlank() && passwordInput.isNotBlank() && selectedOption.isNotBlank()) {
                 // Call the registerUser function in the ViewModel
                 viewModel.registerUser(nameInput, surnameInput, selectedOption)
 
@@ -127,9 +213,10 @@ fun RegisterScreen(viewModel: StepCounterViewModel = viewModel(), navController:
                     Toast.LENGTH_LONG
                 ).show()
 
-                // Navigate back after registration (optional)
-                //navController.navigateUp()
-                navController.navigate("Login") // Replace "login" with the correct route for your login screen
+                // Navigate to the login screen
+                navController.navigate("Login")
+            } else {
+                Toast.makeText(context, "Please fill all fields", Toast.LENGTH_SHORT).show()
             }
         }) {
             Text(text = "Register")
