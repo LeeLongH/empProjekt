@@ -129,7 +129,7 @@ fun RegisterScreen(viewModel: StepCounterViewModel = viewModel(), navController:
 
                 // Navigate back after registration (optional)
                 //navController.navigateUp()
-                navController.navigate("login") // Replace "login" with the correct route for your login screen
+                navController.navigate("Login") // Replace "login" with the correct route for your login screen
             }
         }) {
             Text(text = "Register")

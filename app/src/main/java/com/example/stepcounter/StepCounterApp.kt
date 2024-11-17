@@ -10,6 +10,7 @@ import com.example.stepcounter.ui.HistoryScreen
 import com.example.stepcounter.ui.HomeScreen
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.example.stepcounter.ui.LoginScreen
 import com.example.stepcounter.ui.RegisterScreen
 
 enum class StepCounterScreen() {
