@@ -10,11 +10,14 @@ import com.example.stepcounter.ui.HistoryScreen
 import com.example.stepcounter.ui.HomeScreen
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.example.stepcounter.ui.RegisterScreen
 
 enum class StepCounterScreen() {
     Home,
     Goal,
-    History
+    History,
+    Register,
+    Login,
 }
 
 @Composable
@@ -22,7 +25,7 @@ fun StepCounterApp(viewModel: StepCounterViewModel = viewModel(),
                    navController: NavHostController = rememberNavController()) {
 
     NavHost(navController = navController,
-        startDestination = StepCounterScreen.Home.name
+        startDestination = StepCounterScreen.Register.name
     ) {
         composable(route = StepCounterScreen.Home.name) {
             HomeScreen(viewModel = viewModel, navController = navController)
@@ -32,6 +35,12 @@ fun StepCounterApp(viewModel: StepCounterViewModel = viewModel(),
         }
         composable(route = StepCounterScreen.History.name) {
             HistoryScreen(viewModel = viewModel, navController = navController)
+        }
+        composable(route = StepCounterScreen.Register.name) {
+            RegisterScreen(viewModel = viewModel, navController = navController)
+        }
+        composable(route = StepCounterScreen.Login.name) {
+            LoginScreen(viewModel = viewModel, navController = navController)
         }
     }
 }

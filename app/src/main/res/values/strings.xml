@@ -6,4 +6,9 @@
     <string name="history">View Step History</string>
     <string name="save_goal">Save Goal</string>
     <string name="title">Daily Step Counter</string>
+    <string name="enter_name">Enter Name</string>"
+    <string name="enter_surname">Enter Surname</string>
+    <string name="register">Register now</string>
+    <string name="select_profession">select Profession</string>
+
 </resources>

@@ -2,6 +2,7 @@ import androidx.lifecycle.ViewModel
 import com.example.stepcounter.data.stepHistory
 import com.example.stepcounter.ui.StepCounterUIState
 import com.example.stepcounter.ui.StepHistory
+import com.example.stepcounter.ui.User
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -48,6 +49,16 @@ class StepCounterViewModel : ViewModel() {
         // Reset the step count at the end of the day and update history
         resetStepCounter()
     }
+
+    // Register a new user (name, surname, profession)
+    fun registerUser(name: String, surname: String, profession: String) {
+        val user = User(name, surname, profession)
+        _uiState.update {
+                currentState -> currentState.copy(user = user)
+        }
+    }
+
+
 
 
 }
