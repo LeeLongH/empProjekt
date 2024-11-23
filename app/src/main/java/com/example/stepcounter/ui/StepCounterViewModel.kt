@@ -51,8 +51,8 @@ class StepCounterViewModel : ViewModel() {
     }
 
     // Register a new user (name, surname, profession)
-    fun registerUser(name: String, surname: String, profession: String) {
-        val user = User(name, surname, profession)
+    fun registerUser(uniqueID: String, name: String, surname: String, profession: String, email: String) {
+        val user = User(uniqueID, name, surname, profession, email)
         _uiState.update {
                 currentState -> currentState.copy(user = user)
         }

@@ -25,8 +25,7 @@ import com.example.stepcounter.data.stepHistory
 data class StepHistory(val date: String, val steps: Int)
 
 @Composable
-fun HistoryScreen(viewModel: StepCounterViewModel = viewModel(),
-                  navController: NavController
+fun HistoryScreen(viewModel: StepCounterViewModel = viewModel(), navController: NavController
 ) {
 
     LazyColumn(modifier = Modifier.padding(16.dp)) {

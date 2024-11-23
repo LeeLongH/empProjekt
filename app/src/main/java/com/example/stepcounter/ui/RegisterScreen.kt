@@ -52,8 +52,9 @@ fun RegisterScreen(viewModel: StepCounterViewModel = viewModel(), navController:
     // State variables for user input
     var nameInput by remember { mutableStateOf("") }
     var surnameInput by remember { mutableStateOf("") }
+    var emailInput by remember { mutableStateOf("") }
     var passwordInput by remember { mutableStateOf("") }
-    var selectedOption by remember { mutableStateOf("") } // Inicializacija za radio gumbe
+    var professionInput by remember { mutableStateOf("") } // Inicializacija za radio gumbe
 
     // Handle registration status (optional)
     val uiState by viewModel.uiState.collectAsState()
@@ -127,6 +128,27 @@ fun RegisterScreen(viewModel: StepCounterViewModel = viewModel(), navController:
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        OutlinedTextField(
+            value = emailInput,
+            onValueChange = {
+                emailInput = it
+                // Check email format
+                if (!isValidEmail(it)) {
+                    Toast.makeText(context, "Invalid email format", Toast.LENGTH_SHORT).show()
+                }
+            },
+            label = { Text("Email") },
+            modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = KeyboardOptions.Default.copy(
+                imeAction = ImeAction.Next,
+                keyboardType = KeyboardType.Email // Use Email type
+            )
+        )
+
+
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         // Password input field
         OutlinedTextField(
             value = passwordInput,
@@ -175,8 +197,8 @@ fun RegisterScreen(viewModel: StepCounterViewModel = viewModel(), navController:
                 // Hunter option
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(
-                        selected = selectedOption == "Hunter",
-                        onClick = { selectedOption = "Hunter" }
+                        selected = professionInput == "Hunter",
+                        onClick = { professionInput = "Hunter" }
                     )
                     Text(
                         text = "Hunter",
@@ -187,8 +209,8 @@ fun RegisterScreen(viewModel: StepCounterViewModel = viewModel(), navController:
                 // Hunter Family option
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(
-                        selected = selectedOption == "Hunter Family",
-                        onClick = { selectedOption = "Hunter Family" }
+                        selected = professionInput == "Hunter Family",
+                        onClick = { professionInput = "Hunter Family" }
                     )
                     Text(
                         text = "Hunter Family",
@@ -202,16 +224,19 @@ fun RegisterScreen(viewModel: StepCounterViewModel = viewModel(), navController:
 
         // Register button
         Button(onClick = {
-            if (nameInput.isNotBlank() && surnameInput.isNotBlank() && passwordInput.isNotBlank() && selectedOption.isNotBlank()) {
+            if (nameInput.isNotBlank() && surnameInput.isNotBlank() && passwordInput.isNotBlank() && professionInput.isNotBlank()) {
                 // Call the registerUser function in the ViewModel
-                viewModel.registerUser(nameInput, surnameInput, selectedOption)
+                val uniqueID = "";
+                viewModel.registerUser(uniqueID.toString(), nameInput, surnameInput, professionInput, emailInput)
 
                 // Show Toast message after registration
                 Toast.makeText(
                     context,
-                    "User Registered: $nameInput $surnameInput, Profession: $selectedOption",
+                    "User Registered: $nameInput $surnameInput, Profession: $professionInput",
                     Toast.LENGTH_LONG
                 ).show()
+
+                //viewModel.UserStorage.saveUsers(UserStorage(context)) // Shrani posodobljen seznam uporabnikov
 
                 // Navigate to the login screen
                 navController.navigate("Login")
@@ -222,4 +247,10 @@ fun RegisterScreen(viewModel: StepCounterViewModel = viewModel(), navController:
             Text(text = "Register")
         }
     }
+}
+
+// Function to validate email
+fun isValidEmail(email: String): Boolean {
+    val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$".toRegex()
+    return email.matches(emailRegex)
 }
