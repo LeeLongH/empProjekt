@@ -224,22 +224,26 @@ fun RegisterScreen(viewModel: StepCounterViewModel = viewModel(), navController:
 
         // Register button
         Button(onClick = {
-            if (nameInput.isNotBlank() && surnameInput.isNotBlank() && passwordInput.isNotBlank() && professionInput.isNotBlank()) {
-                // Call the registerUser function in the ViewModel
-                val uniqueID = "";
-                viewModel.registerUser(uniqueID.toString(), nameInput, surnameInput, professionInput, emailInput)
+            if (isValidName(nameInput) &&
+                isValidSurname(surnameInput) &&
+                isValidEmail(emailInput) /*&&
+                professionInput.isNotBlank()*/
+                ){
+                    // Call the registerUser function in the ViewModel
+                    val uniqueID = "";
+                    viewModel.registerUser(uniqueID.toString(), nameInput, surnameInput, professionInput, emailInput)
 
-                // Show Toast message after registration
-                Toast.makeText(
-                    context,
-                    "User Registered: $nameInput $surnameInput, Profession: $professionInput",
-                    Toast.LENGTH_LONG
-                ).show()
+                    // Show Toast message after registration
+                    Toast.makeText(
+                        context,
+                        "User Registered: $nameInput $surnameInput, Email: $emailInput, Profession: $professionInput",
+                        Toast.LENGTH_LONG
+                    ).show()
 
-                //viewModel.UserStorage.saveUsers(UserStorage(context)) // Shrani posodobljen seznam uporabnikov
+                    //viewModel.UserStorage.saveUsers(UserStorage(context)) // Shrani posodobljen seznam uporabnikov
 
-                // Navigate to the login screen
-                navController.navigate("Login")
+                    // Navigate to the login screen
+                    navController.navigate("Login")
             } else {
                 Toast.makeText(context, "Please fill all fields", Toast.LENGTH_SHORT).show()
             }
@@ -250,7 +254,18 @@ fun RegisterScreen(viewModel: StepCounterViewModel = viewModel(), navController:
 }
 
 // Function to validate email
-fun isValidEmail(email: String): Boolean {
+fun isValidEmail(emailInput: String): Boolean {
+    /*
     val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$".toRegex()
     return email.matches(emailRegex)
+    */
+    return true
+}
+fun isValidName(nameInput: String): Boolean {
+    //return nameInput.length > 1
+    return true
+}
+fun isValidSurname(surnameInput: String): Boolean {
+    //return surnameInput.length > 1
+    return true
 }
