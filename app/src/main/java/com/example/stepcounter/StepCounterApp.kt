@@ -12,6 +12,7 @@ import com.example.stepcounter.ui.HistoryScreen
 import com.example.stepcounter.ui.LoginScreen
 import com.example.stepcounter.ui.RegisterScreen
 import com.example.stepcounter.ui.ReportScreen
+import com.example.stepcounter.ui.SearchUsersByProfessionScreen
 
 enum class StepCounterScreen() {
     Home,
@@ -19,7 +20,8 @@ enum class StepCounterScreen() {
     Register,
     Login,
     Report,
-    History
+    History,
+    Search
 }
 @Composable
 fun StepCounterApp(
@@ -28,7 +30,7 @@ fun StepCounterApp(
 ) {
     NavHost(
         navController = navController,
-        startDestination = StepCounterScreen.Report.name
+        startDestination = StepCounterScreen.Search.name
     ) {
         composable(route = StepCounterScreen.Home.name) {
             HomeScreen(viewModel = viewModel, navController = navController)
@@ -45,5 +47,9 @@ fun StepCounterApp(
         composable(route = StepCounterScreen.History.name) {
             HistoryScreen(viewModel = viewModel, navController = navController)
         }
+        composable(route = StepCounterScreen.Search.name) {
+            SearchUsersByProfessionScreen(viewModel = viewModel, navController = navController)
+        }
+
     }
 }

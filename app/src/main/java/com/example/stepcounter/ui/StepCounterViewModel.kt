@@ -3,9 +3,11 @@ package com.example.stepcounter.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.stepcounter.data.UserDAO
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.*
@@ -22,6 +24,13 @@ class StepCounterViewModel(private val userDAO: UserDAO) : ViewModel() {
         viewModelScope.launch {
             userDAO.insert(user) // Shranjevanje uporabnika v bazo
             _uiState.update { currentState -> currentState.copy(user = user) } // Posodobi stanje UI
+        }
+    }
+
+    // Function to get users by profession
+    fun getUsersByProfession(profession: String): Flow<List<User>> {
+        return flow {
+            emit(userDAO.getUsersByProfession(profession)) // Pridobi uporabnike iz baze
         }
     }
 

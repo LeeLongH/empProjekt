@@ -189,8 +189,8 @@ fun RegisterScreen(viewModel: StepCounterViewModel, navController: NavHostContro
                 // Hunter option
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(
-                        selected = professionInput == "Hunter",
-                        onClick = { professionInput = "Hunter" }
+                        selected = professionInput == "Čuvaj",
+                        onClick = { professionInput = "Čuvaj" }
                     )
                     Text(
                         text = "Hunter",
@@ -201,8 +201,8 @@ fun RegisterScreen(viewModel: StepCounterViewModel, navController: NavHostContro
                 // Hunter Family option
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(
-                        selected = professionInput == "Hunter Family",
-                        onClick = { professionInput = "Hunter Family" }
+                        selected = professionInput == "Upravljalec Lovišča",
+                        onClick = { professionInput = "Upravljalec Lovišča" }
                     )
                     Text(
                         text = "Hunter Family",

@@ -222,7 +222,7 @@ fun ReportScreen(viewModel: StepCounterViewModel = viewModel(), navController: N
         Button(
             onClick = {
                 // Navigate to the report history screen
-                navController.navigate("reportHistory")
+                navController.navigate("History")
             },
             modifier = Modifier.fillMaxWidth()
         ) {

@@ -7,6 +7,7 @@ import androidx.room.Query;
 import androidx.room.Update;
 import androidx.room.OnConflictStrategy;
 import com.example.stepcounter.ui.User
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface UserDAO {
@@ -33,10 +34,6 @@ interface UserDAO {
     // Pridobi uporabnika po e-pošti
     @Query("SELECT * FROM users_db WHERE email = :email")
     suspend fun getUserByEmail(email: String): User?
-
-    // Pridobi uporabnika po poklicu
-    @Query("SELECT * FROM users_db WHERE profession = :profession")
-    suspend fun getUserByProfession(profession: String): User?
 
     // Pridobi vse uporabnike z določeno profesijo
     @Query("SELECT * FROM users_db WHERE profession = :profession")
