@@ -48,7 +48,8 @@ fun SearchUsersByProfessionScreen(
 ) {
     val selectedProfession = remember { mutableStateOf("") }
     val users = viewModel.getUsersByProfession(selectedProfession.value).collectAsState(initial = emptyList())
-
+    val showDialog = remember { mutableStateOf(false) }
+    val selectedUser = remember { mutableStateOf<User?>(null) }
 
     Column(
         modifier = Modifier
@@ -56,7 +57,7 @@ fun SearchUsersByProfessionScreen(
             .padding(16.dp)
     ) {
         Text(
-            text = "Izberite poklic",
+            text = stringResource(R.string.text_select_profession),
             modifier = Modifier.padding(bottom = 8.dp),
         )
 
@@ -67,12 +68,12 @@ fun SearchUsersByProfessionScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             RadioButtonWithLabel(
-                label = "Upravljalec Lovišča",
+                label = stringResource(R.string.text_upravljalec_lovisca),
                 isSelected = selectedProfession.value == "Upravljalec Lovišča",
                 onClick = { selectedProfession.value = "Upravljalec Lovišča" }
             )
             RadioButtonWithLabel(
-                label = "Čuvaj",
+                label = stringResource(R.string.text_cuvaj),
                 isSelected = selectedProfession.value == "Čuvaj",
                 onClick = { selectedProfession.value = "Čuvaj" }
             )
@@ -85,13 +86,13 @@ fun SearchUsersByProfessionScreen(
             enabled = selectedProfession.value.isNotEmpty(),
             modifier = Modifier.align(Alignment.End)
         ) {
-            Text(text = "Poišči")
+            Text(text = stringResource(R.string.btn_search))
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Najdeni uporabniki:",
+            text = stringResource(R.string.text_found_users),
             modifier = Modifier.padding(vertical = 8.dp),
         )
 
@@ -103,7 +104,7 @@ fun SearchUsersByProfessionScreen(
         ) {
             if (users.value.isEmpty()) {
                 Text(
-                    text = "Nobenih najdenih uporabnikov.",
+                    text = stringResource(R.string.text_no_users_found),
                     color = Color.Gray
                 )
             } else {
@@ -115,7 +116,10 @@ fun SearchUsersByProfessionScreen(
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { /* Add any action if needed */ }
+                                .clickable {
+                                    selectedUser.value = user
+                                    showDialog.value = true
+                                }
                                 .padding(vertical = 4.dp)
                         ) {
                             Row(
@@ -143,13 +147,63 @@ fun SearchUsersByProfessionScreen(
             }
         }
         Button(
-            onClick = {navController.navigate("Report")},
-            enabled = selectedProfession.value.isNotEmpty(),
+            onClick = {navController.navigate("Home")},
             modifier = Modifier.align(Alignment.End)
         ) {
-            Text(text = "Nazaj na Domačo stran")
+            Text(text = stringResource(R.string.btn_home_screen))
+        }
+
+        // AlertDialog
+        if (showDialog.value) {
+            AlertDialog(
+                onDismissRequest = { showDialog.value = false },
+                title = {
+                    Text(text = stringResource(R.string.dialog_title_confirmation))
+                },
+                text = {
+                    Text(
+                        text = stringResource(
+                            R.string.dialog_text_confirmation,
+                            selectedUser.value?.name ?: "",
+                            selectedUser.value?.surname ?: ""
+                        )
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showDialog.value = false
+                            // Potrditev: Tukaj lahko dodate svojo logiko za delo z izbranim uporabnikom
+                        }
+                    ) {
+                        Text(text = stringResource(R.string.btn_confirm))
+                    }
+                },
+                dismissButton = {
+                    Button(onClick = { showDialog.value = false }) {
+                        Text(text = stringResource(R.string.btn_cancel))
+                    }
+                }
+            )
         }
     }
+}
+
+@Composable
+fun AlertDialog(
+    onDismissRequest: () -> Unit,
+    title: @Composable () -> Unit,
+    text: @Composable () -> Unit,
+    confirmButton: @Composable () -> Unit,
+    dismissButton: @Composable () -> Unit
+) {
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismissRequest,
+        title = title,
+        text = text,
+        confirmButton = confirmButton,
+        dismissButton = dismissButton
+    )
 }
 
 @Composable

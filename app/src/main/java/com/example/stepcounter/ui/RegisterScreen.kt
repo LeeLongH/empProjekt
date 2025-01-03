@@ -33,10 +33,14 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavHostController
+import com.example.stepcounter.R
+import com.example.stepcounter.StepCounterScreen
+import com.example.stepcounter.ui.StepCounterViewModel
 
 
 @Composable
@@ -47,6 +51,8 @@ fun RegisterScreen(viewModel: StepCounterViewModel, navController: NavHostContro
     var emailInput by remember { mutableStateOf("") }
     var passwordInput by remember { mutableStateOf("") }
     var professionInput by remember { mutableStateOf("") } // Inicializacija za radio gumbe
+    val cuvajText = stringResource(R.string.text_cuvaj)
+    val upravljalecText = stringResource(R.string.text_upravljalec_lovisca)
 
     // Handle registration status (optional)
     val uiState by viewModel.uiState.collectAsState()
@@ -70,7 +76,7 @@ fun RegisterScreen(viewModel: StepCounterViewModel, navController: NavHostContro
     ) {
 
         Text(
-            text = "Registracija",
+            text = stringResource(R.string.title_register),
             style = TextStyle(
                 fontSize = 35.sp,
                 fontWeight = FontWeight.Bold,
@@ -92,7 +98,7 @@ fun RegisterScreen(viewModel: StepCounterViewModel, navController: NavHostContro
                     nameInput = it
                 }
             },
-            label = { Text("Name") },
+            label = { Text(stringResource(R.string.text_name)) },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions.Default.copy(
                 imeAction = ImeAction.Next,
@@ -110,7 +116,7 @@ fun RegisterScreen(viewModel: StepCounterViewModel, navController: NavHostContro
                     surnameInput = it
                 }
             },
-            label = { Text("Surname") },
+            label = { Text(stringResource(R.string.text_surname)) },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions.Default.copy(
                 imeAction = ImeAction.Next,
@@ -129,7 +135,7 @@ fun RegisterScreen(viewModel: StepCounterViewModel, navController: NavHostContro
                     Toast.makeText(context, "Invalid email format", Toast.LENGTH_SHORT).show()
                 }
             },
-            label = { Text("Email") },
+            label = { Text(stringResource(R.string.text_email)) },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions.Default.copy(
                 imeAction = ImeAction.Next,
@@ -149,7 +155,7 @@ fun RegisterScreen(viewModel: StepCounterViewModel, navController: NavHostContro
                     passwordInput = it
                 }
             },
-            label = { Text("Password") },
+            label = { Text(stringResource(R.string.text_password)) },
             modifier = Modifier.fillMaxWidth(),
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions.Default.copy(
@@ -167,7 +173,7 @@ fun RegisterScreen(viewModel: StepCounterViewModel, navController: NavHostContro
         ) {
             // Title
             Text(
-                text = "Kaj si?",
+                text = stringResource(R.string.text_select_your_profession),
                 style = TextStyle(
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
@@ -189,11 +195,11 @@ fun RegisterScreen(viewModel: StepCounterViewModel, navController: NavHostContro
                 // Hunter option
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(
-                        selected = professionInput == "Čuvaj",
-                        onClick = { professionInput = "Čuvaj" }
+                        selected = professionInput == cuvajText,
+                        onClick = { professionInput = cuvajText }
                     )
                     Text(
-                        text = "Hunter",
+                        text = cuvajText,
                         modifier = Modifier.padding(start = 8.dp)
                     )
                 }
@@ -201,11 +207,11 @@ fun RegisterScreen(viewModel: StepCounterViewModel, navController: NavHostContro
                 // Hunter Family option
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(
-                        selected = professionInput == "Upravljalec Lovišča",
-                        onClick = { professionInput = "Upravljalec Lovišča" }
+                        selected = professionInput == upravljalecText ,
+                        onClick = { professionInput = upravljalecText  }
                     )
                     Text(
-                        text = "Hunter Family",
+                        text = upravljalecText ,
                         modifier = Modifier.padding(start = 8.dp)
                     )
                 }
@@ -236,10 +242,10 @@ fun RegisterScreen(viewModel: StepCounterViewModel, navController: NavHostContro
                     // Navigate to the login screen
                     navController.navigate("Login")
             } else {
-                Toast.makeText(context, "Please fill all fields", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Invalid input somewhere", Toast.LENGTH_SHORT).show()
             }
         }) {
-            Text(text = "Register")
+            Text(text = stringResource(R.string.btn_register))
         }
     }
 }

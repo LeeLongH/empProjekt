@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -36,6 +37,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.stepcounter.R
+import com.example.stepcounter.ui.StepCounterViewModel
+
 
 @Composable
 fun HistoryScreen(viewModel: StepCounterViewModel = viewModel(), navController: NavController) {
@@ -48,11 +52,20 @@ fun HistoryScreen(viewModel: StepCounterViewModel = viewModel(), navController: 
     ) {
         // Naslov
         Text(
-            text = "Zgodovina poročil",
+            text = stringResource(R.string.title_history_report),
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        Button(
+            onClick = {
+                // Navigate to the report history screen
+                navController.navigate("Home")
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(stringResource(R.string.btn_home_screen))
+        }
     }
 }

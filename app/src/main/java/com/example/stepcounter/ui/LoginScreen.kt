@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -34,6 +35,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.stepcounter.R
+
 
 
 @Composable
@@ -64,7 +67,7 @@ fun LoginScreen(viewModel: StepCounterViewModel = viewModel(), navController: Na
     ) {
 
         Text(
-            text = "Prijava",
+            text = stringResource(R.string.title_login),
             style = TextStyle(
                 fontSize = 35.sp,
                 fontWeight = FontWeight.Bold,
@@ -106,7 +109,7 @@ fun LoginScreen(viewModel: StepCounterViewModel = viewModel(), navController: Na
                     passwordInput = it
                 }
             },
-            label = { Text("Password") },
+            label = { Text(stringResource(R.string.text_password)) },
             modifier = Modifier.fillMaxWidth(),
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions.Default.copy(
@@ -121,12 +124,12 @@ fun LoginScreen(viewModel: StepCounterViewModel = viewModel(), navController: Na
         Button(onClick = {
             if (passwordInput.isNotBlank() && emailInput.isNotBlank()) {
                 // Navigate to the login screen
-                navController.navigate("Report")
+                navController.navigate("Home")
             } else {
                 Toast.makeText(context, "Please fill all fields", Toast.LENGTH_SHORT).show()
             }
         }) {
-            Text(text = "Prijava")
+            Text(text = stringResource(R.string.btn_login))
         }
 
     }

@@ -28,9 +28,6 @@ import com.example.stepcounter.StepCounterScreen
 fun HomeScreen(viewModel: StepCounterViewModel = viewModel(),
                navController: NavController
 ) {
-
-    val uiState = viewModel.uiState.collectAsState().value
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -39,43 +36,28 @@ fun HomeScreen(viewModel: StepCounterViewModel = viewModel(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = stringResource(R.string.title),
+            text = stringResource(R.string.app_name),
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold
         )
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        Text(
-            text = "${uiState.stepCount} / ${uiState.stepGoal} Steps",
-            fontSize = 28.sp,
-            color = Color.Blue,
-            fontWeight = FontWeight.Bold
-        )
+        // Poišči cuvaje button
+        Button(onClick = { navController.navigate(StepCounterScreen.Search.name)}) {
+            Text(text = "Poišči Čuvaje ali Upravljalce Lovišč")        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        LinearProgressIndicator(
-            progress = uiState.stepCount.toFloat() / uiState.stepGoal,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(8.dp),
-            color = Color.Blue
-        )
+        // Napiši poročilo button
+        Button(onClick = { navController.navigate(StepCounterScreen.Report.name) }) {
+            Text(text = "Napiši poročilo")        }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // Navigate to GoalScreen
-        Button(onClick = {navController.navigate(StepCounterScreen.Goal.name)}) {
-            Text(text = stringResource(R.string.daily_goal))
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Navigate to HistoryScreen
-        Button(onClick = {navController.navigate(StepCounterScreen.History.name)}) {
-            Text(text = stringResource(R.string.history))
-        }
+        // Zgodovina poročil button
+        Button(onClick = { navController.navigate(StepCounterScreen.History.name) }) {
+            Text(text = "Pregled poročil")        }
     }
 }
 

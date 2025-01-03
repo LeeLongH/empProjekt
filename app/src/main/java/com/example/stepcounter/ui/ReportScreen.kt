@@ -47,6 +47,12 @@ import kotlinx.coroutines.delay
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.material3.Icon
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import com.example.stepcounter.R
+import com.example.stepcounter.ui.StepCounterViewModel
+
 
 @SuppressLint("DefaultLocale")
 @Composable
@@ -106,7 +112,9 @@ fun ReportScreen(viewModel: StepCounterViewModel = viewModel(), navController: N
     ) {
         // Title
         Text(
-            text = "Oddaja poročila",
+            text = stringResource(R.string.title_submit_report),
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
 
@@ -115,7 +123,7 @@ fun ReportScreen(viewModel: StepCounterViewModel = viewModel(), navController: N
         OutlinedTextField(
             value = reportText,
             onValueChange = { reportText = it },
-            label = { Text("Napisite poročilo") },
+            label = { Text(stringResource(R.string.text_write_report)) },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(150.dp),
@@ -144,7 +152,7 @@ fun ReportScreen(viewModel: StepCounterViewModel = viewModel(), navController: N
 
                     }
                 },
-                label = { Text("Čas v urah") },
+                label = { Text(stringResource(R.string.text_time_input)) },
                 modifier = Modifier
                     .weight(1f)
                     .padding(end = 8.dp)
@@ -176,7 +184,13 @@ fun ReportScreen(viewModel: StepCounterViewModel = viewModel(), navController: N
                 },
                 modifier = Modifier.wrapContentWidth(),
             ) {
-                Text(if (isButtonActive) "Zaustavi štopanje" else "Pričetek Štopanja")
+                Text(
+                    text = if (isButtonActive) {
+                        stringResource(R.string.btn_stop_timing)
+                    } else {
+                        stringResource(R.string.btn_start_timing)
+                    }
+                )
             }
         }
 
@@ -190,7 +204,7 @@ fun ReportScreen(viewModel: StepCounterViewModel = viewModel(), navController: N
                     distanceInKm = it
                 }
             },
-            label = { Text("Razdalja v kilometrih") },
+            label = { Text(stringResource(R.string.text_distance)) },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions.Default.copy(
                 imeAction = ImeAction.Next,
@@ -199,14 +213,20 @@ fun ReportScreen(viewModel: StepCounterViewModel = viewModel(), navController: N
         )
 
         // Button to start voice recording
+        // Gumb z ikono za snemanje zvoka
         Button(
             onClick = {
-                // Call voice recording API logic here
+                // Klic logike za snemanje zvoka
                 Toast.makeText(context, "Snemanje govora začeto", Toast.LENGTH_SHORT).show()
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Začni snemanje govora")
+            Icon(
+                painter = painterResource(id = R.drawable.mikrofon), // Uporabite ustrezno ime datoteke iz drawable
+                contentDescription = null, // Če je zgolj dekoracija
+                modifier = Modifier.padding(end = 8.dp) // Razmik med ikono in besedilom
+            )
+            Text(stringResource(R.string.btn_start_recording))
         }
         Button(onClick = {
             if (distanceInKm.isNotBlank() && reportText.isNotBlank() && timeText.isNotBlank()) {
@@ -216,7 +236,7 @@ fun ReportScreen(viewModel: StepCounterViewModel = viewModel(), navController: N
                 Toast.makeText(context, "Izpolnite vsa polja", Toast.LENGTH_SHORT).show()
             }
         }) {
-            Text("Poslji Poročilo")
+            Text(stringResource(R.string.btn_submit_report))
         }
         // Button to view reports
         Button(
@@ -226,7 +246,17 @@ fun ReportScreen(viewModel: StepCounterViewModel = viewModel(), navController: N
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Ogled Poročil")
+            Text(stringResource(R.string.btn_view_reports))
+        }
+
+        Button(
+            onClick = {
+                // Navigate to the report history screen
+                navController.navigate("Home")
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(stringResource(R.string.btn_home_screen))
         }
     }
 
