@@ -1,5 +1,6 @@
 package com.example.stepcounter.ui
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.stepcounter.data.UserDAO
@@ -45,5 +46,11 @@ class StepCounterViewModel(private val userDAO: UserDAO) : ViewModel() {
     // Optional: Reset step counter
     fun resetStepCounter() {
         _uiState.update { currentState -> currentState.copy(stepCount = 0) }
+    }
+    fun isUserLoggedIn(context: Context): Boolean {
+        val sharedPreferences = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+        val email = sharedPreferences.getString("EMAIL", null)
+        val password = sharedPreferences.getString("PASSWORD", null)
+        return !email.isNullOrEmpty() && !password.isNullOrEmpty()
     }
 }

@@ -45,19 +45,27 @@ fun HomeScreen(viewModel: StepCounterViewModel = viewModel(),
 
         // Poišči cuvaje button
         Button(onClick = { navController.navigate(StepCounterScreen.Search.name)}) {
-            Text(text = "Poišči Čuvaje ali Upravljalce Lovišč")        }
+            Text(text = stringResource(R.string.title_find_users))
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         // Napiši poročilo button
         Button(onClick = { navController.navigate(StepCounterScreen.Report.name) }) {
-            Text(text = "Napiši poročilo")        }
+            Text(text = stringResource(R.string.text_write_report))
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         // Zgodovina poročil button
         Button(onClick = { navController.navigate(StepCounterScreen.History.name) }) {
-            Text(text = "Pregled poročil")        }
+            Text(text = stringResource(R.string.title_history_report))
+        }
+        Spacer(modifier = Modifier.height(32.dp))
+        // LoginRegister
+        Button(onClick = { navController.navigate(StepCounterScreen.LoginRegister.name) }) {
+            Text(text = stringResource(R.string.btn_login_register))
+        }
     }
 }
 

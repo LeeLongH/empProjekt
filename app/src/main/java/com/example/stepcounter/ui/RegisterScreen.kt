@@ -1,5 +1,6 @@
 package com.example.stepcounter.ui
 
+import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -230,6 +231,9 @@ fun RegisterScreen(viewModel: StepCounterViewModel, navController: NavHostContro
                     // Call the registerUser function in the ViewModel
                     viewModel.registerUser(0, nameInput, surnameInput, professionInput, emailInput)
 
+                // Save email and password for auto-fill
+                saveLoginCredentials(context, emailInput, passwordInput)
+
                     // Show Toast message after registration
                     Toast.makeText(
                         context,
@@ -250,6 +254,14 @@ fun RegisterScreen(viewModel: StepCounterViewModel, navController: NavHostContro
     }
 }
 
+fun saveLoginCredentials(context: Context, email: String, password: String) {
+    val sharedPreferences = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+    with(sharedPreferences.edit()) {
+        putString("EMAIL", email)
+        putString("PASSWORD", password)
+        apply()
+    }
+}
 // Function to validate email
 fun isValidEmail(emailInput: String): Boolean {
     /*

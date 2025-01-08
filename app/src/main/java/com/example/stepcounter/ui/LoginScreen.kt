@@ -1,5 +1,6 @@
 package com.example.stepcounter.ui
 
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -14,6 +15,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,14 +47,22 @@ fun LoginScreen(viewModel: StepCounterViewModel = viewModel(), navController: Na
     var emailInput by remember { mutableStateOf("") }
     var passwordInput by remember { mutableStateOf("") }
 
+    // State variables for email and password
+    // Get the context
+    val context = LocalContext.current
+
+    // Load saved credentials
+    LaunchedEffect(Unit) {
+        val sharedPreferences = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+        emailInput = sharedPreferences.getString("EMAIL", "") ?: ""
+        passwordInput = sharedPreferences.getString("PASSWORD", "") ?: ""
+    }
+
     // Handle registration status (optional)
     val uiState by viewModel.uiState.collectAsState()
 
     // Get the keyboard controller
     val keyboardController = LocalSoftwareKeyboardController.current
-
-    // Get the context using LocalContext
-    val context = LocalContext.current
 
     Column(
         modifier = Modifier

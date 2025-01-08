@@ -13,6 +13,10 @@
 
     <!--        VSI     -->
     <string name="btn_home_screen">Domača stran</string>
+    <string name="btn_login_register">Prijava/Registracija/Odjava</string>
+
+
+
 
     <!--        Oddaja Poročil      -->
     <string name="title_submit_report">Oddaja poročila</string>
@@ -22,6 +26,7 @@
     <string name="btn_stop_timing">Zaustavi štopanje</string>
     <string name="text_distance">Razdalja v kilometrih</string>
     <string name="btn_start_recording">Začni snemanje govora</string>
+    <string name="btn_stop_recording">Končaj snemanje govora</string>
     <string name="btn_submit_report">Oddaj poročilo</string>
     <string name="btn_view_reports">Ogled poročil</string>
 

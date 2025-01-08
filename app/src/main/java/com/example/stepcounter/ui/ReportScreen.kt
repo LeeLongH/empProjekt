@@ -2,6 +2,7 @@ package com.example.stepcounter.ui
 
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -48,10 +49,12 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.material3.Icon
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.example.stepcounter.R
 import com.example.stepcounter.ui.StepCounterViewModel
+import java.io.File
 
 
 @SuppressLint("DefaultLocale")
@@ -68,7 +71,7 @@ fun ReportScreen(viewModel: StepCounterViewModel = viewModel(), navController: N
 
     var timeText by remember { mutableStateOf("") }
     var isButtonActive by remember { mutableStateOf(false) }
-    var minutes by remember { mutableStateOf(0) } // Timer value in seconds
+    var minutes by remember { mutableIntStateOf(0) } // Timer value in seconds
     val maxTimeInMinutes = 12 * 60 // 12 hours in minutes
     val focusRequester = remember { FocusRequester() }
 
@@ -85,6 +88,8 @@ fun ReportScreen(viewModel: StepCounterViewModel = viewModel(), navController: N
 
                 if (hours >= 12) {
                     isButtonActive = false // Stop after 12 hours
+                    minutes = 0
+                    timeText = ""
                     break
                 }
 
@@ -105,12 +110,10 @@ fun ReportScreen(viewModel: StepCounterViewModel = viewModel(), navController: N
             .fillMaxSize()
             .padding(16.dp)
             .clickable {
-                // Dismiss the keyboard when clicking outside
                 keyboardController?.hide()
             },
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Title
         Text(
             text = stringResource(R.string.title_submit_report),
             fontSize = 24.sp,
@@ -118,7 +121,6 @@ fun ReportScreen(viewModel: StepCounterViewModel = viewModel(), navController: N
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
 
-        // Textarea for report
         var reportText by remember { mutableStateOf("") }
         OutlinedTextField(
             value = reportText,
@@ -135,7 +137,42 @@ fun ReportScreen(viewModel: StepCounterViewModel = viewModel(), navController: N
             )
         )
 
-        // UI with button and text field
+        // Button to start voice recording
+        var isRecording by remember { mutableStateOf(false) }
+        var audioFile: File? by remember { mutableStateOf(null) }
+
+        Button(
+            onClick = {
+                if (isRecording) {
+                    // Stop recording and upload audio
+                    isRecording = false
+                    audioFile?.let { file ->
+                        // Use the existing uploadAudio function to upload the file
+                        uploadAudio(file, context) { response ->
+                            Toast.makeText(context, "Audio uploaded: $response", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                } else {
+                    // Start recording
+                    isRecording = true
+                    // Implement recording logic here to create a file
+                    audioFile = File(context.filesDir, "recorded_audio.mp3")
+                    // Example: Start recording audio and save it to `audioFile`
+                    Toast.makeText(context, "Recording started", Toast.LENGTH_SHORT).show()
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.mikrofon), // Replace with your icon
+                contentDescription = null,
+                modifier = Modifier.padding(end = 8.dp)
+            )
+            Text(
+                text = if (isRecording) stringResource(R.string.btn_stop_recording) else stringResource(R.string.btn_start_recording)
+            )
+        }
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -143,7 +180,6 @@ fun ReportScreen(viewModel: StepCounterViewModel = viewModel(), navController: N
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Time input (hours and minutes)
             OutlinedTextField(
                 value = timeText,
                 onValueChange = {
@@ -159,43 +195,30 @@ fun ReportScreen(viewModel: StepCounterViewModel = viewModel(), navController: N
                 .focusRequester(focusRequester) // Handles focus
                 .onFocusChanged { focusState ->
                     if (focusState.isFocused) {
-                        // When the TextField is focused (clicked), set the current time
-                        val hours = minutes / 60.0 // Convert minutes to hours as a Double
-                        timeText = String.format("%.2f", hours) // Format to 2 decimal places
+                        val hours = minutes / 60.0
+                        timeText = String.format("%.2f", hours)
                     }
                 },
                 keyboardOptions = KeyboardOptions.Default.copy(
                     imeAction = ImeAction.Next,
                     keyboardType = KeyboardType.Number
                 ),
-                enabled = !isButtonActive // Disable editing when timer is active
+                enabled = !isButtonActive
             )
 
-            // Button to start/stop the timer
             Button(
                 onClick = {
-                    if (isButtonActive) {
-                        // Stop the timer
-                        isButtonActive = false
-                    } else {
-                        // Start the timer
-                        isButtonActive = true
-                    }
+                    isButtonActive = !isButtonActive
                 },
                 modifier = Modifier.wrapContentWidth(),
             ) {
                 Text(
-                    text = if (isButtonActive) {
-                        stringResource(R.string.btn_stop_timing)
-                    } else {
-                        stringResource(R.string.btn_start_timing)
-                    }
+                    text = if (isButtonActive) { stringResource(R.string.btn_stop_timing)
+                    } else { stringResource(R.string.btn_start_timing) }
                 )
             }
         }
 
-
-        // Distance input (kilometers)
         var distanceInKm by remember { mutableStateOf("") }
         OutlinedTextField(
             value = distanceInKm,
@@ -212,53 +235,56 @@ fun ReportScreen(viewModel: StepCounterViewModel = viewModel(), navController: N
             )
         )
 
-        // Button to start voice recording
-        // Gumb z ikono za snemanje zvoka
-        Button(
-            onClick = {
-                // Klic logike za snemanje zvoka
-                Toast.makeText(context, "Snemanje govora začeto", Toast.LENGTH_SHORT).show()
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.mikrofon), // Uporabite ustrezno ime datoteke iz drawable
-                contentDescription = null, // Če je zgolj dekoracija
-                modifier = Modifier.padding(end = 8.dp) // Razmik med ikono in besedilom
-            )
-            Text(stringResource(R.string.btn_start_recording))
-        }
         Button(onClick = {
             if (distanceInKm.isNotBlank() && reportText.isNotBlank() && timeText.isNotBlank()) {
-                // Navigate to the login screen
                 navController.navigate("Report")
-            } else {
-                Toast.makeText(context, "Izpolnite vsa polja", Toast.LENGTH_SHORT).show()
-            }
-        }) {
-            Text(stringResource(R.string.btn_submit_report))
-        }
-        // Button to view reports
-        Button(
-            onClick = {
-                // Navigate to the report history screen
-                navController.navigate("History")
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(stringResource(R.string.btn_view_reports))
-        }
+            } else { Toast.makeText(context, "Izpolnite vsa polja", Toast.LENGTH_SHORT).show() }
+        }) { Text(stringResource(R.string.btn_submit_report)) }
 
         Button(
-            onClick = {
-                // Navigate to the report history screen
-                navController.navigate("Home")
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(stringResource(R.string.btn_home_screen))
-        }
+            onClick = { navController.navigate("History") }, modifier = Modifier.fillMaxWidth()
+        ) { Text(stringResource(R.string.btn_view_reports)) }
+
+        Button(
+            onClick = { navController.navigate("Home") }, modifier = Modifier.fillMaxWidth()
+        ) { Text(stringResource(R.string.btn_home_screen)) }
     }
 
 }
+/*
+fun uploadAudio(file: File, context: Context, onResponse: (String) -> Unit) {
+    val client = OkHttpClient()
 
+    val mediaType = MediaType.parse("multipart/form-data")
+    val requestBody = MultipartBody.Builder()
+        .setType(MultipartBody.FORM)
+        .addFormDataPart(
+            "file",
+            file.name,
+            RequestBody.create(mediaType, file)
+        )
+        .build()
+
+    val request = Request.Builder()
+        .url("https://whisper-speech-to-text1.p.rapidapi.com/speech-to-text")
+        .post(requestBody)
+        .addHeader("x-rapidapi-key", "YOUR_RAPIDAPI_KEY")
+        .addHeader("x-rapidapi-host", "whisper-speech-to-text1.p.rapidapi.com")
+        .build()
+
+    client.newCall(request).enqueue(object : Callback {
+        override fun onFailure(call: Call, e: IOException) {
+            e.printStackTrace()
+            Toast.makeText(context, "Napaka pri pošiljanju: ${e.message}", Toast.LENGTH_LONG).show()
+        }
+
+        override fun onResponse(call: Call, response: Response) {
+            response.body?.string()?.let { responseText ->
+                onResponse(responseText)
+            }
+        }
+    })
+}*/
+fun uploadAudio(file: File, context: Context, onResponse: (String) -> Unit) {
+    TODO()
+}
