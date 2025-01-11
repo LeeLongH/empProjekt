@@ -44,7 +44,7 @@ android {
 dependencies {
     //implementation(libs.kotlinx.serialization.json)
     //implementation(libs.okhttp)
-
+    //implementation 'com.google.android.gms:play-services-speech:21.0.1'
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -65,4 +65,8 @@ dependencies {
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.runtime) // obvezna knjižnica
     implementation(libs.androidx.room.ktx) // opcijsko, za coroutines podporo
+
+    //API
+    //implementation(libs.play.services.speech)
+
 }

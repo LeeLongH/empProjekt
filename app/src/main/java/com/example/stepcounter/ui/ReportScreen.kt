@@ -3,7 +3,11 @@ package com.example.stepcounter.ui
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.media.MediaPlayer
+import android.media.MediaRecorder
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -55,8 +59,9 @@ import androidx.compose.ui.res.stringResource
 import com.example.stepcounter.R
 import com.example.stepcounter.ui.StepCounterViewModel
 import java.io.File
+import java.io.IOException
 
-
+@Suppress("DEPRECATION")
 @SuppressLint("DefaultLocale")
 @Composable
 fun ReportScreen(viewModel: StepCounterViewModel = viewModel(), navController: NavController) {
@@ -74,6 +79,11 @@ fun ReportScreen(viewModel: StepCounterViewModel = viewModel(), navController: N
     var minutes by remember { mutableIntStateOf(0) } // Timer value in seconds
     val maxTimeInMinutes = 12 * 60 // 12 hours in minutes
     val focusRequester = remember { FocusRequester() }
+
+    RequestPermissions(context)
+
+    // Audio Recorder instance
+    val audioRecorder = remember { AudioRecorder(context) }
 
     // Timer logic
     LaunchedEffect(isButtonActive) {
@@ -146,18 +156,24 @@ fun ReportScreen(viewModel: StepCounterViewModel = viewModel(), navController: N
                 if (isRecording) {
                     // Stop recording and upload audio
                     isRecording = false
-                    audioFile?.let { file ->
-                        // Use the existing uploadAudio function to upload the file
-                        uploadAudio(file, context) { response ->
-                            Toast.makeText(context, "Audio uploaded: $response", Toast.LENGTH_SHORT).show()
-                        }
+                    audioRecorder.stopRecording()
+
+
+                    // Get the audio file after stopping the recording
+                    val audioFile = audioRecorder.getAudioFile()
+
+                    // Play the audio if the file exists
+                    audioFile?.let {
+                        playAudioFile(it, context) // Play the recorded audio
                     }
+
+
+                    Toast.makeText(context, "Recording stopped", Toast.LENGTH_SHORT).show()
                 } else {
                     // Start recording
                     isRecording = true
                     // Implement recording logic here to create a file
-                    audioFile = File(context.filesDir, "recorded_audio.mp3")
-                    // Example: Start recording audio and save it to `audioFile`
+                    audioRecorder.startRecording()
                     Toast.makeText(context, "Recording started", Toast.LENGTH_SHORT).show()
                 }
             },
@@ -251,40 +267,32 @@ fun ReportScreen(viewModel: StepCounterViewModel = viewModel(), navController: N
     }
 
 }
-/*
-fun uploadAudio(file: File, context: Context, onResponse: (String) -> Unit) {
-    val client = OkHttpClient()
-
-    val mediaType = MediaType.parse("multipart/form-data")
-    val requestBody = MultipartBody.Builder()
-        .setType(MultipartBody.FORM)
-        .addFormDataPart(
-            "file",
-            file.name,
-            RequestBody.create(mediaType, file)
-        )
-        .build()
-
-    val request = Request.Builder()
-        .url("https://whisper-speech-to-text1.p.rapidapi.com/speech-to-text")
-        .post(requestBody)
-        .addHeader("x-rapidapi-key", "YOUR_RAPIDAPI_KEY")
-        .addHeader("x-rapidapi-host", "whisper-speech-to-text1.p.rapidapi.com")
-        .build()
-
-    client.newCall(request).enqueue(object : Callback {
-        override fun onFailure(call: Call, e: IOException) {
-            e.printStackTrace()
-            Toast.makeText(context, "Napaka pri pošiljanju: ${e.message}", Toast.LENGTH_LONG).show()
+@Composable
+fun RequestPermissions(context: Context) {
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (!isGranted) {
+            Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
         }
+    }
 
-        override fun onResponse(call: Call, response: Response) {
-            response.body?.string()?.let { responseText ->
-                onResponse(responseText)
-            }
-        }
-    })
-}*/
-fun uploadAudio(file: File, context: Context, onResponse: (String) -> Unit) {
-    TODO()
+    LaunchedEffect(Unit) {
+        permissionLauncher.launch(android.Manifest.permission.RECORD_AUDIO)
+    }
 }
+
+
+fun playAudioFile(audioFile: File, context: Context) {
+    val mediaPlayer = MediaPlayer()
+    try {
+        mediaPlayer.setDataSource(audioFile.absolutePath)
+        mediaPlayer.prepare() // Pripravi predvajanje
+        mediaPlayer.start() // Začni predvajanje
+    } catch (e: IOException) {
+        e.printStackTrace()
+        Toast.makeText(context, "Error playing audio: ${e.message}", Toast.LENGTH_SHORT).show()
+    }
+}
+
+
