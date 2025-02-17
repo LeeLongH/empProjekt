@@ -1,10 +1,8 @@
-package com.example.stepcounter.ui
+package com.example.porocilolovec.ui
 import android.content.Context
-import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.widget.Toast
 import java.io.File
-import java.io.IOException
 
 
 class AudioRecorder(private val context: Context) {
@@ -29,7 +27,7 @@ class AudioRecorder(private val context: Context) {
                 start()
             }
 
-            Toast.makeText(context, "Recording started", Toast.LENGTH_SHORT).show()
+            //Toast.makeText(context, "Recording started", Toast.LENGTH_SHORT).show()
             audioFile
         } catch (e: Exception) {
             e.printStackTrace()
@@ -50,7 +48,7 @@ class AudioRecorder(private val context: Context) {
                 release()
             }
             mediaRecorder = null
-            Toast.makeText(context, "Recording stopped and saved", Toast.LENGTH_SHORT).show()
+            //Toast.makeText(context, "Recording stopped and saved", Toast.LENGTH_SHORT).show()
             audioFile // Return the saved file reference
         } catch (e: Exception) {
             e.printStackTrace()

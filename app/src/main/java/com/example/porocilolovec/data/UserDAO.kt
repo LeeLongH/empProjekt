@@ -1,4 +1,4 @@
-package com.example.stepcounter.data
+package com.example.porocilolovec.data
 
 import androidx.room.Dao;
 import androidx.room.Insert;
@@ -6,8 +6,7 @@ import androidx.room.Delete;
 import androidx.room.Query;
 import androidx.room.Update;
 import androidx.room.OnConflictStrategy;
-import com.example.stepcounter.ui.User
-import kotlinx.coroutines.flow.Flow
+import com.example.porocilolovec.ui.User
 
 @Dao
 interface UserDAO {

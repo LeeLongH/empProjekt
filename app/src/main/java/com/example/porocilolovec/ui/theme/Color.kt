@@ -1,4 +1,4 @@
-package com.example.stepcounter.ui.theme
+package com.example.porocilolovec.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

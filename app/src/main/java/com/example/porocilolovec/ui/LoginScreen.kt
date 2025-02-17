@@ -1,4 +1,4 @@
-package com.example.stepcounter.ui
+package com.example.porocilolovec.ui
 
 import android.content.Context
 import android.widget.Toast
@@ -16,7 +16,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,12 +36,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.stepcounter.R
+import com.example.porocilolovec.R
 
 
 
 @Composable
-fun LoginScreen(viewModel: StepCounterViewModel = viewModel(), navController: NavController){
+fun LoginScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: NavController){
 
     var emailInput by remember { mutableStateOf("") }
     var passwordInput by remember { mutableStateOf("") }
@@ -57,9 +56,6 @@ fun LoginScreen(viewModel: StepCounterViewModel = viewModel(), navController: Na
         emailInput = sharedPreferences.getString("EMAIL", "") ?: ""
         passwordInput = sharedPreferences.getString("PASSWORD", "") ?: ""
     }
-
-    // Handle registration status (optional)
-    val uiState by viewModel.uiState.collectAsState()
 
     // Get the keyboard controller
     val keyboardController = LocalSoftwareKeyboardController.current

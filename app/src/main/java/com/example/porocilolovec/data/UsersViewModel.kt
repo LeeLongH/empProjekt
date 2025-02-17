@@ -1,4 +1,4 @@
-package com.example.stepcounter.data
+package com.example.porocilolovec.data
 
 import androidx.lifecycle.ViewModel
 

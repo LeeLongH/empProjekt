@@ -1,16 +1,16 @@
-package com.example.stepcounter.ui
+package com.example.porocilolovec.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.stepcounter.data.UserDAO
+import com.example.porocilolovec.data.UserDAO
 
-class StepCounterViewModelFactory(
+class PorociloLovecViewModelFactory(
     private val userDAO: UserDAO
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(StepCounterViewModel::class.java)) {
+        if (modelClass.isAssignableFrom(PorociloLovecViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return StepCounterViewModel(userDAO) as T
+            return PorociloLovecViewModel(userDAO) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

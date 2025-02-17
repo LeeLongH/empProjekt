@@ -1,4 +1,4 @@
-package com.example.stepcounter
+package com.example.porocilolovec
 
 import org.junit.Test
 

@@ -1,6 +1,6 @@
-package com.example.stepcounter.data
+package com.example.porocilolovec.data
 
-import com.example.stepcounter.ui.User
+import com.example.porocilolovec.ui.User
 import kotlinx.coroutines.flow.Flow
 
 interface UserRepo {

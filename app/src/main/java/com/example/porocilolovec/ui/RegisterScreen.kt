@@ -1,4 +1,4 @@
-package com.example.stepcounter.ui
+package com.example.porocilolovec.ui
 
 import android.content.Context
 import androidx.compose.foundation.clickable
@@ -14,7 +14,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,8 +25,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.RadioButton
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -39,13 +36,11 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavHostController
-import com.example.stepcounter.R
-import com.example.stepcounter.StepCounterScreen
-import com.example.stepcounter.ui.StepCounterViewModel
+import com.example.porocilolovec.R
 
 
 @Composable
-fun RegisterScreen(viewModel: StepCounterViewModel, navController: NavHostController) {
+fun RegisterScreen(viewModel: PorociloLovecViewModel, navController: NavHostController) {
     // State variables for user input
     var nameInput by remember { mutableStateOf("") }
     var surnameInput by remember { mutableStateOf("") }
@@ -54,9 +49,6 @@ fun RegisterScreen(viewModel: StepCounterViewModel, navController: NavHostContro
     var professionInput by remember { mutableStateOf("") } // Inicializacija za radio gumbe
     val cuvajText = stringResource(R.string.text_cuvaj)
     val upravljalecText = stringResource(R.string.text_upravljalec_lovisca)
-
-    // Handle registration status (optional)
-    val uiState by viewModel.uiState.collectAsState()
 
     // Get the keyboard controller
     val keyboardController = LocalSoftwareKeyboardController.current

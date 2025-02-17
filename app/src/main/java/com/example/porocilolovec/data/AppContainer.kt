@@ -1,4 +1,4 @@
-package com.example.stepcounter.data
+package com.example.porocilolovec.data
 import android.content.Context
 
 class AppContainer(private val context: Context) {

@@ -1,6 +1,6 @@
-package com.example.stepcounter
+package com.example.porocilolovec
 
-import com.example.stepcounter.ui.StepCounterViewModel
+import com.example.porocilolovec.ui.PorociloLovecViewModel
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -8,15 +8,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.stepcounter.ui.HomeScreen
+import com.example.porocilolovec.ui.HomeScreen
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.example.stepcounter.ui.HistoryScreen
-import com.example.stepcounter.ui.LoginRegisterScreen
-import com.example.stepcounter.ui.LoginScreen
-import com.example.stepcounter.ui.RegisterScreen
-import com.example.stepcounter.ui.ReportScreen
-import com.example.stepcounter.ui.SearchUsersByProfessionScreen
+import com.example.porocilolovec.ui.HistoryScreen
+import com.example.porocilolovec.ui.LoginRegisterScreen
+import com.example.porocilolovec.ui.LoginScreen
+import com.example.porocilolovec.ui.RegisterScreen
+import com.example.porocilolovec.ui.ReportScreen
+import com.example.porocilolovec.ui.SearchUsersByProfessionScreen
+import com.example.porocilolovec.ui.LogoutScreen
 
 
 enum class StepCounterScreen {
@@ -27,11 +28,12 @@ enum class StepCounterScreen {
     Search,
     Report,
     History,
+    Logout,
 }
 
 @Composable
 fun StepCounterApp(
-    viewModel: StepCounterViewModel = viewModel(), // Pridobimo ViewModel
+    viewModel: PorociloLovecViewModel = viewModel(), // Pridobimo ViewModel
     navController: NavHostController = rememberNavController()
 ) {
 
@@ -75,6 +77,9 @@ fun StepCounterApp(
         }
         composable(route = StepCounterScreen.LoginRegister.name) {
             LoginRegisterScreen(viewModel = viewModel, navController = navController)
+        }
+        composable(route = StepCounterScreen.Logout.name) {
+            LogoutScreen(viewModel = viewModel, navController = navController)
         }
     }
 }

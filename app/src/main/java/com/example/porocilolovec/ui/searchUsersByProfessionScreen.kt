@@ -1,4 +1,4 @@
-package com.example.stepcounter.ui
+package com.example.porocilolovec.ui
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -10,12 +10,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,19 +28,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.stepcounter.R
-import com.example.stepcounter.StepCounterScreen
+import com.example.porocilolovec.R
 
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.material3.Icon
-import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.unit.dp
 
 @Composable
 fun SearchUsersByProfessionScreen(
-    viewModel: StepCounterViewModel = viewModel(),
+    viewModel: PorociloLovecViewModel = viewModel(),
     navController: NavController
 ) {
     val selectedProfession = remember { mutableStateOf("") }

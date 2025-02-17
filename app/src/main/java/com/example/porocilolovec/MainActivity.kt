@@ -1,14 +1,13 @@
-package com.example.stepcounter
+package com.example.porocilolovec
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.ViewModelProvider
-import com.example.stepcounter.data.RoomDB
-import com.example.stepcounter.ui.StepCounterViewModel
-import com.example.stepcounter.ui.StepCounterViewModelFactory
-import com.example.stepcounter.ui.theme.StepCounterTheme
+import com.example.porocilolovec.data.RoomDB
+import com.example.porocilolovec.ui.PorociloLovecViewModel
+import com.example.porocilolovec.ui.PorociloLovecViewModelFactory
+import com.example.porocilolovec.ui.theme.StepCounterTheme
 
 
 class MainActivity : ComponentActivity() {
@@ -20,10 +19,10 @@ class MainActivity : ComponentActivity() {
         val userDAO = database.UserDAO()
 
         // Ustvari ViewModelFactory
-        val viewModelFactory = StepCounterViewModelFactory(userDAO)
+        val viewModelFactory = PorociloLovecViewModelFactory(userDAO)
 
         // Ustvari ViewModel
-        val viewModel = ViewModelProvider(this, viewModelFactory)[StepCounterViewModel::class.java]
+        val viewModel = ViewModelProvider(this, viewModelFactory)[PorociloLovecViewModel::class.java]
 
         setContent {
             StepCounterTheme {

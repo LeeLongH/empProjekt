@@ -1,10 +1,10 @@
-package com.example.stepcounter.data
+package com.example.porocilolovec.data
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.example.stepcounter.ui.User
+import com.example.porocilolovec.ui.User
 
 @Database (
     entities = [User::class],
