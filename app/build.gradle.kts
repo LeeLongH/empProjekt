@@ -42,7 +42,7 @@ android {
 }
 
 dependencies {
-    //implementation(libs.kotlinx.serialization.json)
+    implementation(libs.kotlinx.serialization.json)
     //implementation(libs.okhttp)
     //implementation 'com.google.android.gms:play-services-speech:21.0.1'
     implementation(libs.androidx.core.ktx)
@@ -67,6 +67,7 @@ dependencies {
     implementation(libs.androidx.room.ktx) // opcijsko, za coroutines podporo
 
     //API
-    //implementation(libs.play.services.speech)
+    implementation(libs.okhttp) // Uses OkHttp version 4.10.0
+    //implementation(libs.okhttp.v4110) // Uses OkHttp version 4.11.0
 
 }

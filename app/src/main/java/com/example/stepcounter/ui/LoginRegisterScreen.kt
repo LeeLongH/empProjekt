@@ -82,6 +82,14 @@ fun LoginRegisterScreen(viewModel: StepCounterViewModel = viewModel(), navContro
             Text(text = stringResource(R.string.btn_register))
         }
 
+        // Logout button
+        Button(onClick = {
+            navController.navigate("Logout")
+        }
+        ) {
+            Text(text = stringResource(R.string.btn_logout))
+        }
+
     }
 }
 

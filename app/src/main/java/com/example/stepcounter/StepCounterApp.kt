@@ -17,6 +17,7 @@ import com.example.stepcounter.ui.LoginScreen
 import com.example.stepcounter.ui.RegisterScreen
 import com.example.stepcounter.ui.ReportScreen
 import com.example.stepcounter.ui.SearchUsersByProfessionScreen
+import com.example.stepcounter.ui.LogoutScreen
 
 
 enum class StepCounterScreen {
@@ -27,6 +28,7 @@ enum class StepCounterScreen {
     Search,
     Report,
     History,
+    Logout,
 }
 
 @Composable
@@ -75,6 +77,9 @@ fun StepCounterApp(
         }
         composable(route = StepCounterScreen.LoginRegister.name) {
             LoginRegisterScreen(viewModel = viewModel, navController = navController)
+        }
+        composable(route = StepCounterScreen.Logout.name) {
+            LogoutScreen(viewModel = viewModel, navController = navController)
         }
     }
 }

@@ -29,7 +29,7 @@ class AudioRecorder(private val context: Context) {
                 start()
             }
 
-            Toast.makeText(context, "Recording started", Toast.LENGTH_SHORT).show()
+            //Toast.makeText(context, "Recording started", Toast.LENGTH_SHORT).show()
             audioFile
         } catch (e: Exception) {
             e.printStackTrace()
@@ -50,7 +50,7 @@ class AudioRecorder(private val context: Context) {
                 release()
             }
             mediaRecorder = null
-            Toast.makeText(context, "Recording stopped and saved", Toast.LENGTH_SHORT).show()
+            //Toast.makeText(context, "Recording stopped and saved", Toast.LENGTH_SHORT).show()
             audioFile // Return the saved file reference
         } catch (e: Exception) {
             e.printStackTrace()
