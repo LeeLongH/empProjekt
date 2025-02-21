@@ -3,7 +3,7 @@ package com.example.porocilolovec.ui
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.porocilolovec.data.UserDAO
+import com.example.porocilolovec.data.UserDao
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 
-class PorociloLovecViewModel(private val userDAO: UserDAO) : ViewModel() {
+class PorociloLovecViewModel(private val userDAO: UserDao) : ViewModel() {
 
     // Holds the app's UI state
     private val _userState = MutableStateFlow<User?>(null)
@@ -19,9 +19,9 @@ class PorociloLovecViewModel(private val userDAO: UserDAO) : ViewModel() {
 
     // Function to register a new user
     fun registerUser(uniqueID: Int, name: String, surname: String, profession: String, email: String) {
-        val user = User(uniqueID, name, surname, profession, email)
+        val user = User(uniqueID, name, surname, profession, email, reports = emptyMap())
         viewModelScope.launch {
-            userDAO.insert(user) // Shranjevanje uporabnika v bazo
+            userDAO.insertUser(user) // Shranjevanje uporabnika v bazo
             _userState.value = user //shranjevanje v ui state
         }
     }
@@ -36,7 +36,7 @@ class PorociloLovecViewModel(private val userDAO: UserDAO) : ViewModel() {
     // Function to load the current user (if any exists)
     fun loadUserById(userId: Int) {
         viewModelScope.launch {
-            val user = userDAO.getUserById(userId.toString())
+            val user = userDAO.getUserById(userId) // ✅ Correct, passing Int
             _userState.value = user //shranjevanje v ui state
         }
     }

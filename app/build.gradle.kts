@@ -1,3 +1,4 @@
+import org.gradle.kotlin.dsl.libs
 
 plugins {
     alias(libs.plugins.android.application)
@@ -70,5 +71,11 @@ dependencies {
     //API
     implementation(libs.okhttp) // Uses OkHttp version 4.10.0
     //implementation(libs.okhttp.v4110) // Uses OkHttp version 4.11.0
+
+    //json
+    implementation(libs.kotlinx.serialization.json)
+
+
+    implementation (libs.gson.v288)
 
 }

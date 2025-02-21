@@ -1,22 +1,48 @@
 package com.example.porocilolovec.data
 
+import com.example.porocilolovec.ui.ReportEntity
 import com.example.porocilolovec.ui.User
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 
-class OfflineUserRepo(private val userDAO: UserDAO) : UserRepo {
-    // Funkcija za pridobitev vseh uporabnikov
-    override fun getAllUsers(): Flow<List<User>> {
-        return flow {
-            // Uporabimo suspend funkcijo znotraj coroutine
-            emit(userDAO.getAllUsers())
-        }
+class OfflineUserRepository(private val userDao: UserDao, private val reportDao: ReportDao) {
+
+    suspend fun addUser(user: User) {
+        userDao.insertUser(user)
     }
 
-    override fun getUsersByProfession(profession: String): Flow<List<User>> {
-        // Implementacija pridobivanja uporabnikov glede na profesijo
-        return flow {
-            emit(userDAO.getUsersByProfession(profession))
-        }
+    suspend fun getUserById(userId: Int): User? {
+        return userDao.getUserById(userId)
     }
+
+    suspend fun getAllUsers(): List<User> {
+        return userDao.getAllUsers()
+    }
+
+    suspend fun updateUser(user: User) {
+        userDao.updateUser(user)
+    }
+
+    suspend fun deleteUser(user: User) {
+        userDao.deleteUser(user)
+    }
+
+    suspend fun addReport(userId: Int, report: ReportEntity) {
+        val reportEntity = ReportEntity(
+            userId = userId,
+            text = report.text,
+            timestamp = report.timestamp,
+            kilometers = report.kilometers,
+            patronReply = report.patronReply
+        )
+        reportDao.insertReport(reportEntity)
+    }
+
+    suspend fun getReportsByUser(userId: Int): List<ReportEntity> {
+        return reportDao.getReportsByUser(userId) // ✅ Just return it directly
+    }
+
+    suspend fun getUsersByProfession(profession: String): List<User> {
+        return userDao.getUsersByProfession(profession)
+    }
+
+
 }

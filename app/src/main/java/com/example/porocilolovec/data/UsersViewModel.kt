@@ -2,11 +2,6 @@ package com.example.porocilolovec.data
 
 import androidx.lifecycle.ViewModel
 
-class UsersViewModel(private val repo: UserRepo): ViewModel() {
-    fun getUsers() = repo.getAllUsers()
-    fun getUsersByProfession(profession: String) = repo.getUsersByProfession(profession)
-}
-
-private fun UserRepo.getAllUsers(): Any {
-    return TODO("Provide the return value")
+class UsersViewModel(private val userRepo: OfflineUserRepository) : ViewModel() { // ✅ Use OfflineUserRepository
+    suspend fun getUsers() = userRepo.getAllUsers()
 }
