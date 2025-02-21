@@ -44,6 +44,9 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.delay
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.material3.Icon
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.example.porocilolovec.R
@@ -58,6 +61,8 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+import kotlinx.coroutines.launch
+
 @Suppress("DEPRECATION")
 @SuppressLint("DefaultLocale")
 @Composable
@@ -71,9 +76,18 @@ fun ReportScreen(viewModel: PorociloLovecViewModel = viewModel(), navController:
 
     var isButtonActive by remember { mutableStateOf(false) }
     var startTime by remember { mutableStateOf<Date?>(null) }
-    var elapsedMinutes by remember { mutableStateOf(0) }
+    var elapsedMinutes by remember { mutableIntStateOf(0) }
     var fromText by remember { mutableStateOf("") }
     var toText by remember { mutableStateOf("") }
+
+    remember { mutableStateOf("") }
+    remember { mutableStateOf("") }
+    val timestamp = System.currentTimeMillis() // ✅ Auto-generate timestamp
+
+    val currentUser = viewModel.userState.collectAsState().value
+    val currentUserId = currentUser?.id ?: -1
+
+    rememberCoroutineScope()
 
     fun parseUserInputToElapsedMinutes(input: String): Int {
         val parts = input.split(":").mapNotNull { it.toIntOrNull() }
@@ -84,7 +98,7 @@ fun ReportScreen(viewModel: PorociloLovecViewModel = viewModel(), navController:
     }
 
 
-    val focusRequester = remember { FocusRequester() }
+    remember { FocusRequester() }
 
     RequestPermissions(context)
 
@@ -291,18 +305,57 @@ fun ReportScreen(viewModel: PorociloLovecViewModel = viewModel(), navController:
         )
 
         Button(onClick = {
-            if (distanceInKm.isNotBlank() && reportText.isNotBlank() /*&& timeText.isNotBlank()*/) {
-                navController.navigate("Report")
-            } else { Toast.makeText(context, "Izpolnite vsa polja", Toast.LENGTH_SHORT).show() }
-        }) { Text(stringResource(R.string.btn_submit_report)) }
+            if (distanceInKm.isNotBlank() && reportText.isNotBlank() && fromText.isNotBlank() && toText.isNotBlank()) {
+
+                val format = SimpleDateFormat("HH:mm", Locale.getDefault())
+
+                try {
+                    val fromTime = format.parse(fromText)
+                    val toTime = format.parse(toText)
+
+                    if (fromTime != null && toTime != null) {
+                        val durationMillis = toTime.time - fromTime.time
+                        val durationMinutes = (durationMillis / (1000 * 60)).toInt() // ✅ Convert to minutes
+
+                        val newReport = ReportEntity(
+                            userId = currentUserId,
+                            text = reportText,
+                            timestamp = durationMinutes,  // ✅ Store as integer minutes
+                            kilometers = distanceInKm.toFloat(),
+                            patronReply = null
+                        )
+
+                        viewModel.addReport(currentUserId, newReport)
+
+                        Toast.makeText(context, "Poročilo poslano!", Toast.LENGTH_SHORT).show()
+                        navController.navigate("Report")
+                    } else {
+                        Toast.makeText(context, "Neveljaven vnos časa", Toast.LENGTH_SHORT).show()
+                    }
+                } catch (e: Exception) {
+                    Toast.makeText(context, "Napaka pri obdelavi časa", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                Toast.makeText(context, "Izpolnite vsa polja", Toast.LENGTH_SHORT).show()
+            }
+        }) {
+            Text(stringResource(R.string.btn_submit_report))
+        }
+
+
+
 
         Button(
             onClick = { navController.navigate("History") }, modifier = Modifier.fillMaxWidth()
-        ) { Text(stringResource(R.string.btn_view_reports)) }
+        ) {
+            Text(stringResource(R.string.btn_view_reports))
+        }
 
         Button(
             onClick = { navController.navigate("Home") }, modifier = Modifier.fillMaxWidth()
-        ) { Text(stringResource(R.string.btn_home_screen)) }
+        ) {
+            Text(stringResource(R.string.btn_home_screen))
+        }
     }
 
 }

@@ -1,5 +1,6 @@
 package com.example.porocilolovec.ui
 
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,16 +33,39 @@ import com.example.porocilolovec.R
 
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+
 
 @Composable
 fun SearchUsersByProfessionScreen(
     viewModel: PorociloLovecViewModel = viewModel(),
     navController: NavController
 ) {
+    // Profession selection state
     val selectedProfession = remember { mutableStateOf("") }
-    val users = viewModel.getUsersByProfession(selectedProfession.value).collectAsState(initial = emptyList())
+
+    // Observing the users fetched by the ViewModel based on the selected profession
+    val users = viewModel.usersByProfession.collectAsState().value
     val showDialog = remember { mutableStateOf(false) }
     val selectedUser = remember { mutableStateOf<User?>(null) }
+
+    // Current user info
+    val currentUser = viewModel.userState.collectAsState().value
+    val currentUserId = currentUser?.id ?: 1
+
+    // Context for Toast
+    val context = LocalContext.current
+
+    // When profession changes, trigger fetching of users
+    LaunchedEffect(selectedProfession.value) {
+        if (selectedProfession.value.isNotEmpty()) {
+            viewModel.getUsersByProfession(selectedProfession.value)
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -94,7 +118,7 @@ fun SearchUsersByProfessionScreen(
                 .weight(1f),
             contentAlignment = Alignment.TopStart
         ) {
-            if (users.value.isEmpty()) {
+            if (users.isEmpty()) {
                 Text(
                     text = stringResource(R.string.text_no_users_found),
                     color = Color.Gray
@@ -104,7 +128,7 @@ fun SearchUsersByProfessionScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    users.value.forEach { user ->
+                    users.forEach { user ->
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -120,13 +144,13 @@ fun SearchUsersByProfessionScreen(
                             ) {
                                 Icon(
                                     painter = when (selectedProfession.value) {
-                                        "Upravljalec Lovišča" -> painterResource(id = R.drawable.upravljalec_lovisca) // Uporabite svojo sliko iz drawable
+                                        "Upravljalec Lovišča" -> painterResource(id = R.drawable.upravljalec_lovisca)
                                         "Čuvaj" -> painterResource(id = R.drawable.cuvaj)
-                                        else -> null // Če ni izbran noben poklic, ne prikaži ikone
+                                        else -> null
                                     } as Painter,
                                     contentDescription = "User Icon",
                                     modifier = Modifier.padding(end = 8.dp),
-                                    tint = Color.Unspecified // Lahko nastaviš barvo, če želiš
+                                    tint = Color.Unspecified
                                 )
                                 Column {
                                     Text(text = user.name + " " + user.surname, fontWeight = FontWeight.Bold, fontSize = 16.sp)
@@ -138,20 +162,19 @@ fun SearchUsersByProfessionScreen(
                 }
             }
         }
+
         Button(
-            onClick = {navController.navigate("Home")},
+            onClick = { navController.navigate("Home") },
             modifier = Modifier.align(Alignment.End)
         ) {
             Text(text = stringResource(R.string.btn_home_screen))
         }
 
-        // AlertDialog
+        // AlertDialog for confirmation
         if (showDialog.value) {
             AlertDialog(
                 onDismissRequest = { showDialog.value = false },
-                title = {
-                    Text(text = stringResource(R.string.dialog_title_confirmation))
-                },
+                title = { Text(text = stringResource(R.string.dialog_title_confirmation)) },
                 text = {
                     Text(
                         text = stringResource(
@@ -164,8 +187,12 @@ fun SearchUsersByProfessionScreen(
                 confirmButton = {
                     Button(
                         onClick = {
+                            selectedUser.value?.let { user ->
+                                // Add friend request
+                                viewModel.addFriend(currentUserId, user.id)
+                                Toast.makeText(context, "Prošnja poslana!", Toast.LENGTH_SHORT).show()
+                            }
                             showDialog.value = false
-                            // Potrditev: Tukaj lahko dodate svojo logiko za delo z izbranim uporabnikom
                         }
                     ) {
                         Text(text = stringResource(R.string.btn_confirm))

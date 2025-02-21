@@ -4,26 +4,30 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
+import com.example.porocilolovec.ui.Converters
 import com.example.porocilolovec.ui.User
+import com.example.porocilolovec.ui.ReportEntity
 
-@Database (
-    entities = [User::class],
-    version = 1,
-    exportSchema = false
-)
+@Database(entities = [User::class, ReportEntity::class], version = 1)
+@TypeConverters(Converters::class) // ✅ Register Converters
 abstract class RoomDB : RoomDatabase() {
-    abstract fun UserDAO(): UserDAO
+    abstract fun userDao(): UserDao
+    abstract fun reportDao(): ReportDao
 
     companion object {
         @Volatile
-        private var Instance: RoomDB? = null
+        private var INSTANCE: RoomDB? = null
 
         fun getDatabase(context: Context): RoomDB {
-            // if the Instance is not null, return it, otherwise create a new database instance.
-            return Instance ?: synchronized(this) {
-                Room.databaseBuilder(context, RoomDB::class.java, "users_db")
-                    .build()
-                    .also { Instance = it }
+            return INSTANCE ?: synchronized(this) {
+                val instance = Room.databaseBuilder(
+                    context.applicationContext,
+                    RoomDB::class.java,
+                    "DB"
+                ).build()
+                INSTANCE = instance
+                instance
             }
         }
     }
