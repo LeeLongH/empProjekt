@@ -14,6 +14,7 @@ import com.example.porocilolovec.ui.User
 
 @Dao
 interface UserDao {
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertUser(user: User): Long
 
@@ -23,8 +24,8 @@ interface UserDao {
     @Query("SELECT * FROM users WHERE id = :userId")
     suspend fun getUserById(userId: Int): User?
 
-    @Query("SELECT * FROM users")
-    suspend fun getAllUsers(): List<User>
+    @Query("SELECT * FROM users WHERE profession = :profession")
+    suspend fun getUsersByProfession(profession: String): List<User>
 
     @Update
     suspend fun updateUser(user: User)
@@ -32,28 +33,9 @@ interface UserDao {
     @Delete
     suspend fun deleteUser(user: User)
 
-    @Query("SELECT * FROM users WHERE profession = :profession")
-    suspend fun getUsersByProfession(profession: String): List<User>
+    @Query("SELECT * FROM users")
+    suspend fun getAllUsers(): List<User>
 
-    // New method to add a friend by updating the reports map
-    @Transaction
-    suspend fun addFriend(currentUserId: Int, friendUserId: Int) {
-        // Get the current user and their reports map
-        val currentUser = getUserById(currentUserId)
-
-        if (currentUser != null) {
-            // Add the friend ID to the reports map with an empty list of reports
-            val updatedReports = currentUser.reports.toMutableMap()
-            updatedReports[friendUserId] = emptyList() // Initialize empty reports list for the new friend
-
-            // Update the current user with the modified reports map
-            val updatedUser = currentUser.copy(reports = updatedReports)
-            updateUser(updatedUser)
-        }
-    }
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun addReport(report: ReportEntity): Long  // Correct signature, passing ReportEntity
-
-
+    @Query("SELECT * FROM users WHERE email = :email AND password = :password")
+    suspend fun getUserByEmailAndPassword(email: String, password: String): User?
 }

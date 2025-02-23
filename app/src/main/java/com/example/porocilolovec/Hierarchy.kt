@@ -20,7 +20,7 @@ import com.example.porocilolovec.ui.SearchUsersByProfessionScreen
 import com.example.porocilolovec.ui.LogoutScreen
 
 
-enum class StepCounterScreen {
+enum class Hierarchy {
     Register,
     Login,
     LoginRegister,
@@ -47,38 +47,38 @@ fun StepCounterApp(
     // Preusmeri na domači zaslon, če je uporabnik že prijavljen
     LaunchedEffect(isUserLoggedIn) {
         if (isUserLoggedIn) {
-            navController.navigate(StepCounterScreen.Home.name) {
-                popUpTo(StepCounterScreen.Register.name) { inclusive = true } // Odstrani Register iz niza
+            navController.navigate(Hierarchy.Home.name) {
+                popUpTo(Hierarchy.Register.name) { inclusive = true } // Odstrani Register iz niza
             }
         }
     }
 
     NavHost(
         navController = navController,
-        startDestination = StepCounterScreen.Register.name
+        startDestination = Hierarchy.Register.name
     ) {
-        composable(route = StepCounterScreen.Home.name) {
+        composable(route = Hierarchy.Home.name) {
             HomeScreen(viewModel = viewModel, navController = navController)
         }
-        composable(route = StepCounterScreen.Register.name) {
+        composable(route = Hierarchy.Register.name) {
             RegisterScreen(viewModel = viewModel, navController = navController)
         }
-        composable(route = StepCounterScreen.Login.name) {
+        composable(route = Hierarchy.Login.name) {
             LoginScreen(viewModel = viewModel, navController = navController)
         }
-        composable(route = StepCounterScreen.Report.name) {
+        composable(route = Hierarchy.Report.name) {
             ReportScreen(viewModel = viewModel, navController = navController)
         }
-        composable(route = StepCounterScreen.History.name) {
+        composable(route = Hierarchy.History.name) {
             HistoryScreen(viewModel = viewModel, navController = navController)
         }
-        composable(route = StepCounterScreen.Search.name) {
+        composable(route = Hierarchy.Search.name) {
             SearchUsersByProfessionScreen(viewModel = viewModel, navController = navController)
         }
-        composable(route = StepCounterScreen.LoginRegister.name) {
+        composable(route = Hierarchy.LoginRegister.name) {
             LoginRegisterScreen(viewModel = viewModel, navController = navController)
         }
-        composable(route = StepCounterScreen.Logout.name) {
+        composable(route = Hierarchy.Logout.name) {
             LogoutScreen(viewModel = viewModel, navController = navController)
         }
     }

@@ -38,7 +38,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavHostController
 import com.example.porocilolovec.R
 
-
 @Composable
 fun RegisterScreen(viewModel: PorociloLovecViewModel, navController: NavHostController) {
     // State variables for user input
@@ -221,7 +220,7 @@ fun RegisterScreen(viewModel: PorociloLovecViewModel, navController: NavHostCont
                 professionInput.isNotBlank()*/
                 ){
                     // Call the registerUser function in the ViewModel
-                    viewModel.registerUser(0, nameInput, surnameInput, professionInput, emailInput)
+                    viewModel.registerUser(0, nameInput, surnameInput, professionInput, emailInput, passwordInput)
 
                 // Save email and password for auto-fill
                 saveLoginCredentials(context, emailInput, passwordInput)
@@ -242,6 +241,14 @@ fun RegisterScreen(viewModel: PorociloLovecViewModel, navController: NavHostCont
             }
         }) {
             Text(text = stringResource(R.string.btn_register))
+        }
+
+        // Login button
+        Button(onClick = {
+            navController.navigate("Login")
+        }
+        ) {
+            Text(text = stringResource(R.string.btn_login))
         }
     }
 }

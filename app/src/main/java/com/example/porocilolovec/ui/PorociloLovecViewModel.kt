@@ -1,15 +1,21 @@
 package com.example.porocilolovec.ui
 
 import android.content.Context
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import com.example.porocilolovec.data.OfflineRepo
 import com.example.porocilolovec.data.UserDao
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-class PorociloLovecViewModel(private val offlineRepo: UserDao) : ViewModel() {
+
+
+
+
+class PorociloLovecViewModel(private val offlineRepo: OfflineRepo) : ViewModel() {
 
     // Holds the app's UI state for the user
     private val _userState = MutableStateFlow<User?>(null)
@@ -19,10 +25,10 @@ class PorociloLovecViewModel(private val offlineRepo: UserDao) : ViewModel() {
     val usersByProfession: StateFlow<List<User>> = _usersByProfession
 
     // Function to register a new user
-    fun registerUser(uniqueID: Int, name: String, surname: String, profession: String, email: String) {
-        val user = User(uniqueID, name, surname, profession, email, reports = emptyMap())
+    fun registerUser(uniqueID: Int, name: String, surname: String, profession: String, email: String, password: String) {
+        val user = User(uniqueID, name, surname, email, reports = emptyMap(), profession, password)
         viewModelScope.launch {
-            offlineRepo.insertUser(user) // Save user to database
+            offlineRepo.addUser(user) // Save user to database
             _userState.value = user // Store the user in UI state
         }
     }
@@ -32,13 +38,9 @@ class PorociloLovecViewModel(private val offlineRepo: UserDao) : ViewModel() {
         viewModelScope.launch {
             try {
                 val users = offlineRepo.getUsersByProfession(profession)
-                // Update UI or state here as needed (for example, emit the list to UI state)
                 _usersByProfession.value = users
-
             } catch (e: Exception) {
-                // Handle the error
-                _usersByProfession.value = emptyList() // Or you can set a state to show an error
-
+                _usersByProfession.value = emptyList() // Handle error by setting empty list
             }
         }
     }
@@ -64,7 +66,6 @@ class PorociloLovecViewModel(private val offlineRepo: UserDao) : ViewModel() {
         viewModelScope.launch {
             try {
                 offlineRepo.addFriend(currentUserId, friendUserId) // Add friend via repository
-                // Handle success (e.g., update UI or show a message)
             } catch (e: Exception) {
                 // Handle failure (e.g., show an error message)
             }
@@ -75,30 +76,35 @@ class PorociloLovecViewModel(private val offlineRepo: UserDao) : ViewModel() {
     fun addReport(userId: Int, report: ReportEntity) {
         viewModelScope.launch {
             try {
-                offlineRepo.addReport(report) // Add report via repository
-                // Handle success (e.g., update UI or show a message)
+                offlineRepo.addReport(userId, report) // Add report via repository
             } catch (e: Exception) {
                 // Handle failure (e.g., show an error message)
             }
         }
     }
 
-    fun loginUser(email: String, context: Context, navController: NavController) {
+    fun loginUser(email: String, password: String, context: Context, navController: NavController) {
         viewModelScope.launch {
-            val user = offlineRepo.loginUser(email)
+            val user = offlineRepo.loginUser(email, password) // Preveri tako email kot geslo
             if (user != null) {
-                // Store logged-in user ID in SharedPreferences
+                // Shranimo ID uporabnika v SharedPreferences
                 val sharedPreferences = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
                 sharedPreferences.edit().putInt("LOGGED_IN_USER_ID", user.id).apply()
 
-                // Navigate to home screen
+                // Lahko naložimo tudi celotnega uporabnika, če ga potrebujemo pozneje
+                _userState.value = user // To bo omogočilo, da imaš dostop do uporabnika v ViewModelu
+
+                // Premik na domačo stran
                 navController.navigate("Home")
             } else {
-                Toast.makeText(context, "User not found!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Invalid email or password", Toast.LENGTH_SHORT).show()
             }
         }
     }
+    // Add logout function to clear SharedPreferences
+    fun logoutUser(context: Context) {
+        // Clear session data in SharedPreferences
+        offlineRepo.clearSession(context)
 
-
-
+    }
 }

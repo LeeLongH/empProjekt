@@ -10,9 +10,10 @@ data class User(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val name: String,
     val surname: String,
-    val profession: String,
     val email: String,
-    val reports: Map<Int, List<ReportEntity>> = emptyMap() // ✅ Initialize empty map
+    val reports: Map<Int, List<ReportEntity>> = emptyMap(), // ✅ Initialize empty map
+    val profession: String,
+    val password: String
 )
 
 @Entity(tableName = "reports")

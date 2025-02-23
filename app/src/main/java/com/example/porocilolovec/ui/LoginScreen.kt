@@ -128,15 +128,25 @@ fun LoginScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: 
 
         // Login button
         Button(onClick = {
-            if (passwordInput.isNotBlank() && emailInput.isNotBlank()) {
-                // Navigate to the login screen
-                navController.navigate("Home")
+            if (emailInput.isNotBlank() && passwordInput.isNotBlank()) {
+                viewModel.loginUser(emailInput, passwordInput, context, navController)
             } else {
                 Toast.makeText(context, "Please fill all fields", Toast.LENGTH_SHORT).show()
             }
         }) {
             Text(text = stringResource(R.string.btn_login))
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Register button
+        Button(onClick = {
+            navController.navigate("Register")
+        }
+        ) {
+            Text(text = "I want to register")
+        }
+
 
     }
 }

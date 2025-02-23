@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.porocilolovec.R
-import com.example.porocilolovec.StepCounterScreen
+import com.example.porocilolovec.Hierarchy
 
 @Composable
 fun HomeScreen(viewModel: PorociloLovecViewModel = viewModel(),
@@ -40,26 +40,26 @@ fun HomeScreen(viewModel: PorociloLovecViewModel = viewModel(),
         Spacer(modifier = Modifier.height(32.dp))
 
         // Poišči cuvaje button
-        Button(onClick = { navController.navigate(StepCounterScreen.Search.name)}) {
+        Button(onClick = { navController.navigate(Hierarchy.Search.name)}) {
             Text(text = stringResource(R.string.title_find_users))
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         // Napiši poročilo button
-        Button(onClick = { navController.navigate(StepCounterScreen.Report.name) }) {
+        Button(onClick = { navController.navigate(Hierarchy.Report.name) }) {
             Text(text = stringResource(R.string.text_write_report))
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         // Zgodovina poročil button
-        Button(onClick = { navController.navigate(StepCounterScreen.History.name) }) {
+        Button(onClick = { navController.navigate(Hierarchy.History.name) }) {
             Text(text = stringResource(R.string.title_history_report))
         }
         Spacer(modifier = Modifier.height(32.dp))
         // LoginRegister
-        Button(onClick = { navController.navigate(StepCounterScreen.LoginRegister.name) }) {
+        Button(onClick = { navController.navigate(Hierarchy.LoginRegister.name) }) {
             Text(text = stringResource(R.string.btn_login_register))
         }
     }

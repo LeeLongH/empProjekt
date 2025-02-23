@@ -1,5 +1,6 @@
 package com.example.porocilolovec.data
 
+import android.content.Context
 import android.util.Log
 import com.example.porocilolovec.ui.ReportEntity
 import com.example.porocilolovec.ui.User
@@ -61,9 +62,6 @@ class OfflineRepo(
         val user2 = userDao.getUserById(userId2)
 
         if (user1 != null && user2 != null) {
-            // DEBUG: Change name to test if Room updates
-            val newName1 = user1.name + " (updated)"
-            val newName2 = user2.name + " (updated)"
 
             val updatedReports1 = user1.reports.toMutableMap().apply {
                 put(userId2, this[userId2] ?: emptyList())
@@ -73,8 +71,8 @@ class OfflineRepo(
                 put(userId1, this[userId1] ?: emptyList())
             }
 
-            val updatedUser1 = user1.copy(name = newName1, reports = updatedReports1)
-            val updatedUser2 = user2.copy(name = newName2, reports = updatedReports2)
+            val updatedUser1 = user1.copy(reports = updatedReports1)
+            val updatedUser2 = user2.copy(reports = updatedReports2)
 
             userDao.updateUser(updatedUser1)
             userDao.updateUser(updatedUser2)
@@ -86,10 +84,13 @@ class OfflineRepo(
         }
     }
 
-    suspend fun loginUser(email: String): User? {
-        return userDao.getUserByEmail(email)
+    suspend fun loginUser(email: String, password: String): User? {
+        return userDao.getUserByEmailAndPassword(email, password) // Preveri tako email kot geslo
     }
 
-
-
+    // Clear session data from SharedPreferences
+    fun clearSession(context: Context) {
+        val sharedPreferences = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+        sharedPreferences.edit().clear().apply()
+    }
 }
