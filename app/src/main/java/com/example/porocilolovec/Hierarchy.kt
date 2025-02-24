@@ -1,5 +1,7 @@
 package com.example.porocilolovec
 
+import android.content.Context
+import android.util.Log
 import com.example.porocilolovec.ui.PorociloLovecViewModel
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -12,13 +14,12 @@ import com.example.porocilolovec.ui.HomeScreen
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.porocilolovec.ui.HistoryScreen
-import com.example.porocilolovec.ui.LoginRegisterScreen
+import com.example.porocilolovec.ui.LoginRegisterLogoutScreen
 import com.example.porocilolovec.ui.LoginScreen
 import com.example.porocilolovec.ui.RegisterScreen
 import com.example.porocilolovec.ui.ReportScreen
 import com.example.porocilolovec.ui.SearchUsersByProfessionScreen
-import com.example.porocilolovec.ui.LogoutScreen
-
+import com.example.porocilolovec.ui.WorkRequestsScreen
 
 enum class Hierarchy {
     Register,
@@ -28,34 +29,35 @@ enum class Hierarchy {
     Search,
     Report,
     History,
-    Logout,
+    workRequests,
 }
 
 @Composable
-fun StepCounterApp(
-    viewModel: PorociloLovecViewModel = viewModel(), // Pridobimo ViewModel
+fun PorociloLovecApp(
+    viewModel: PorociloLovecViewModel = viewModel(), // Get ViewModel
     navController: NavHostController = rememberNavController()
 ) {
 
     val context = LocalContext.current
 
-    // Preveri, če je uporabnik prijavljen
-    val isUserLoggedIn = remember {
-        viewModel.isUserLoggedIn(context)
-    }
+    // ✅ Use the correct SharedPreferences keys
+    val sharedPreferences = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+    val savedEmail = sharedPreferences.getString("USER_EMAIL", null)
+    val savedPassword = sharedPreferences.getString("USER_PASSWORD", null)
 
-    // Preusmeri na domači zaslon, če je uporabnik že prijavljen
-    LaunchedEffect(isUserLoggedIn) {
-        if (isUserLoggedIn) {
+    // ✅ Navigate directly to Home if user is already logged in
+    LaunchedEffect(savedEmail, savedPassword) {
+        if (!savedEmail.isNullOrEmpty() && !savedPassword.isNullOrEmpty()) {
+            Log.d("PorociloLovecApp", "Auto-login with saved credentials: Email = $savedEmail")
             navController.navigate(Hierarchy.Home.name) {
-                popUpTo(Hierarchy.Register.name) { inclusive = true } // Odstrani Register iz niza
+                popUpTo(0) // Clear the back stack
             }
         }
     }
 
     NavHost(
         navController = navController,
-        startDestination = Hierarchy.Register.name
+        startDestination = if (savedEmail != null && savedPassword != null) Hierarchy.Home.name else Hierarchy.Register.name
     ) {
         composable(route = Hierarchy.Home.name) {
             HomeScreen(viewModel = viewModel, navController = navController)
@@ -76,10 +78,13 @@ fun StepCounterApp(
             SearchUsersByProfessionScreen(viewModel = viewModel, navController = navController)
         }
         composable(route = Hierarchy.LoginRegister.name) {
-            LoginRegisterScreen(viewModel = viewModel, navController = navController)
+            LoginRegisterLogoutScreen(viewModel = viewModel, navController = navController)
         }
-        composable(route = Hierarchy.Logout.name) {
-            LogoutScreen(viewModel = viewModel, navController = navController)
+        composable(route = Hierarchy.workRequests.name) {
+            WorkRequestsScreen(viewModel = viewModel, navController = navController)
         }
+
+
+
     }
 }

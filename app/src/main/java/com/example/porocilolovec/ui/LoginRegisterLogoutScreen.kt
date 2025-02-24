@@ -23,9 +23,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 
 
-
 @Composable
-fun LoginRegisterScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: NavController) {
+fun LoginRegisterLogoutScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: NavController) {
 
     var showDialog by remember { mutableStateOf(false) }  // Add this line
 
@@ -73,8 +72,8 @@ fun LoginRegisterScreen(viewModel: PorociloLovecViewModel = viewModel(), navCont
             text = { Text(text = stringResource(R.string.logout_message)) },
             confirmButton = {
                 Button(onClick = {
-                    // Clear session data and navigate to the Login screen
-                    viewModel.logoutUser(navController.context)
+                    // Clear session data
+                    viewModel.clearUserData(navController.context)
 
                     // Close the dialog and navigate to the login screen
                     showDialog = false
@@ -92,4 +91,5 @@ fun LoginRegisterScreen(viewModel: PorociloLovecViewModel = viewModel(), navCont
             }
         )
     }
+
 }

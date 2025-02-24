@@ -66,9 +66,12 @@
     <!--    Logout      -->
     <string name="logout_confirmation">Odjava</string>
     <string name="logout_message">Ali ste prepričani, da se želite odjaviti?</string>
-    <string name="confirm">Pošlji</string>
+    <string name="confirm">Odjavi me</string>
     <string name="cancel">Prekliči</string>
     <string name="btn_logout">Odjava</string>
+
+
+    <string name="no_reports_available">No reports available</string>
 
 
 

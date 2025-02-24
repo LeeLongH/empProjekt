@@ -1,42 +1,84 @@
 package com.example.porocilolovec.ui
 import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.ForeignKey.Companion.CASCADE
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverter
+import androidx.room.TypeConverters
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
+
+
 @Entity(tableName = "users")
+@TypeConverters(Converters::class) // Add this line
 data class User(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val name: String,
-    val surname: String,
-    val email: String,
-    val reports: Map<Int, List<ReportEntity>> = emptyMap(), // ✅ Initialize empty map
+    @PrimaryKey(autoGenerate = true) val userID: Int = 0, // Primary key auto-generated
+    val fullName: String,
     val profession: String,
-    val password: String
+    val email: String,
+    val password: String,
+    val workRequests: String
 )
 
-@Entity(tableName = "reports")
-data class ReportEntity(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val userId: Int,  // Povezava s User
+@Entity(
+    tableName = "Reports",
+    foreignKeys = [
+        ForeignKey(
+            entity = User::class,
+            parentColumns = ["userID"],
+            childColumns = ["userID"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
+    indices = [Index("userID")] // Add an index on userID
+)
+data class Reports(
+    @PrimaryKey(autoGenerate = true) val reportID: Int = 0,
+    val userID: Int, // Now a foreign key
+    val timestamp: Long,
     val text: String,
-    val timestamp: Int,
-    val kilometers: Float,
-    val patronReply: String? = null
+    val distance: Float,
+    val time: Int
+)
+
+@Entity(
+    tableName = "Connections",
+    foreignKeys = [
+        ForeignKey(
+            entity = User::class,
+            parentColumns = ["userID"],
+            childColumns = ["userID"],
+            onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = User::class,
+            parentColumns = ["userID"],
+            childColumns = ["employeeID"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
+    indices = [
+        Index(value = ["userID", "employeeID"]),
+        Index("employeeID") // Add an index on employeeID
+    ]
+)
+data class Connections(
+    @PrimaryKey val connectionID: Int = 0,
+    val userID: Int, // Now a foreign key
+    val employeeID: Int // Now a foreign key
 )
 
 class Converters {
-    private val gson = Gson()
-
     @TypeConverter
-    fun fromReportMap(value: Map<Int, List<ReportEntity>>?): String {
-        return gson.toJson(value) // ✅ Convert Map<Int, List<ReportEntity>> to JSON String
+    fun fromWorkRequests(workRequests: Set<Int>?): String? {
+        return Gson().toJson(workRequests)
     }
 
     @TypeConverter
-    fun toReportMap(value: String): Map<Int, List<ReportEntity>> {
-        val mapType = object : TypeToken<Map<Int, List<ReportEntity>>>() {}.type
-        return gson.fromJson(value, mapType) ?: emptyMap() // ✅ Convert JSON String back to Map
+    fun toWorkRequests(workRequestsString: String?): Set<Int>? {
+        val setType = object : TypeToken<Set<Int>>() {}.type
+        return Gson().fromJson(workRequestsString, setType)
     }
 }

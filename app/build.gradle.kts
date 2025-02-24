@@ -6,6 +6,8 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     //kotlin("plugin.serialization") version "2.1.0"
     id("com.google.devtools.ksp")
+    //id("androidx.room") // Add the Room plugin here
+
 }
 
 android {
@@ -19,6 +21,15 @@ android {
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Schema export configuration goes here
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments += mapOf(
+                    "room.schemaLocation" to "$projectDir/schemas",
+                )
+            }
+        }
     }
 
     buildTypes {

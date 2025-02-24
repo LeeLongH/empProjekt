@@ -1,15 +1,10 @@
 package com.example.porocilolovec.ui
 
-import android.content.Context
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -21,259 +16,95 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.RadioButton
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.style.TextAlign
-import androidx.navigation.NavHostController
-import com.example.porocilolovec.R
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 
 @Composable
-fun RegisterScreen(viewModel: PorociloLovecViewModel, navController: NavHostController) {
-    // State variables for user input
-    var nameInput by remember { mutableStateOf("") }
-    var surnameInput by remember { mutableStateOf("") }
-    var emailInput by remember { mutableStateOf("") }
-    var passwordInput by remember { mutableStateOf("") }
-    var professionInput by remember { mutableStateOf("") } // Inicializacija za radio gumbe
-    val cuvajText = stringResource(R.string.text_cuvaj)
-    val upravljalecText = stringResource(R.string.text_upravljalec_lovisca)
+fun RegisterScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: NavController) {
+    var fullName by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var profession by remember { mutableStateOf("") }
 
-    // Get the keyboard controller
-    val keyboardController = LocalSoftwareKeyboardController.current
-
-    // Get the context using LocalContext
     val context = LocalContext.current
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-            .clickable {
-                // Dismiss the keyboard when clicking outside
-                keyboardController?.hide()
-            },
+        modifier = Modifier.fillMaxSize().padding(16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
-        Text(
-            text = stringResource(R.string.title_register),
-            style = TextStyle(
-                fontSize = 35.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black,
-                letterSpacing = 0.2.sp
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 30.dp),
-            textAlign = TextAlign.Center
-        )
-
-
-        // TextField for name input
-        OutlinedTextField(
-            value = nameInput,
-            onValueChange = {
-                if (it.length <= 15) {
-                    nameInput = it
-                }
-            },
-            label = { Text(stringResource(R.string.text_name)) },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions.Default.copy(
-                imeAction = ImeAction.Next,
-                keyboardType = KeyboardType.Text
-            )
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // TextField for surname input
-        OutlinedTextField(
-            value = surnameInput,
-            onValueChange = {
-                if (it.length <= 15) {
-                    surnameInput = it
-                }
-            },
-            label = { Text(stringResource(R.string.text_surname)) },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions.Default.copy(
-                imeAction = ImeAction.Next,
-                keyboardType = KeyboardType.Text
-            )
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
+        Text(text = "Register", fontSize = 30.sp, fontWeight = FontWeight.Bold)
 
         OutlinedTextField(
-            value = emailInput,
-            onValueChange = {
-                emailInput = it
-                // Check email format
-                if (!isValidEmail(it)) {
-                    Toast.makeText(context, "Invalid email format", Toast.LENGTH_SHORT).show()
-                }
-            },
-            label = { Text(stringResource(R.string.text_email)) },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions.Default.copy(
-                imeAction = ImeAction.Next,
-                keyboardType = KeyboardType.Email // Use Email type
-            )
+            value = fullName,
+            onValueChange = { fullName = it },
+            label = { Text("Full Name") },
+            modifier = Modifier.fillMaxWidth()
         )
 
-
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Password input field
         OutlinedTextField(
-            value = passwordInput,
-            onValueChange = {
-                if (it.length <= 20) {
-                    passwordInput = it
-                }
-            },
-            label = { Text(stringResource(R.string.text_password)) },
-            modifier = Modifier.fillMaxWidth(),
+            value = email,
+            onValueChange = { email = it },
+            label = { Text("Email") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        OutlinedTextField(
+            value = password,
+            onValueChange = { password = it },
+            label = { Text("Password") },
             visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions.Default.copy(
-                imeAction = ImeAction.Done,
-                keyboardType = KeyboardType.Password
-            )
+            modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            // Title
-            Text(
-                text = stringResource(R.string.text_select_your_profession),
-                style = TextStyle(
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black,
-                    letterSpacing = 0.2.sp
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-                textAlign = TextAlign.Center
-            )
-
-            // Radio buttons
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Hunter option
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    RadioButton(
-                        selected = professionInput == cuvajText,
-                        onClick = { professionInput = cuvajText }
-                    )
-                    Text(
-                        text = cuvajText,
-                        modifier = Modifier.padding(start = 8.dp)
-                    )
-                }
-
-                // Hunter Family option
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    RadioButton(
-                        selected = professionInput == upravljalecText ,
-                        onClick = { professionInput = upravljalecText  }
-                    )
-                    Text(
-                        text = upravljalecText ,
-                        modifier = Modifier.padding(start = 8.dp)
-                    )
-                }
+        Row {
+            Row {
+                RadioButton(selected = profession == "Cuvaj", onClick = { profession = "Cuvaj" })
+                Text(text = "Cuvaj")
+            }
+            Row {
+                RadioButton(selected = profession == "Upravljalec", onClick = { profession = "Upravljalec" })
+                Text(text = "Upravljalec")
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Register button
         Button(onClick = {
-            if (isValidName(nameInput) &&
-                isValidSurname(surnameInput) &&
-                isValidEmail(emailInput) /*&&
-                professionInput.isNotBlank()*/
-                ){
-                    // Call the registerUser function in the ViewModel
-                    viewModel.registerUser(0, nameInput, surnameInput, professionInput, emailInput, passwordInput)
+            if (fullName.isNotBlank() && email.isNotBlank() && password.isNotBlank() && profession.isNotBlank()) {
+                // Create the User object
+                val user = User(userID = 0, fullName = fullName, email = email, password = password, profession = profession, workRequests = "")
 
-                // Save email and password for auto-fill
-                saveLoginCredentials(context, emailInput, passwordInput)
+                // Register the user
+                viewModel.registerUser(user)
 
-                    // Show Toast message after registration
-                    Toast.makeText(
-                        context,
-                        "User Registered: $nameInput $surnameInput, Email: $emailInput, Profession: $professionInput",
-                        Toast.LENGTH_LONG
-                    ).show()
+                // Save user data
+                viewModel.saveUserData(context, user)
 
-                    //viewModel.UserStorage.saveUsers(UserStorage(context)) // Shrani posodobljen seznam uporabnikov
-
-                    // Navigate to the login screen
-                    navController.navigate("Login")
+                Toast.makeText(context, "User Registered!", Toast.LENGTH_SHORT).show()
+                navController.navigate("Login")
             } else {
-                Toast.makeText(context, "Invalid input somewhere", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Fill all fields!", Toast.LENGTH_SHORT).show()
             }
         }) {
-            Text(text = stringResource(R.string.btn_register))
+            Text("Register")
         }
 
-        // Login button
+        Button(onClick = { navController.navigate("Login") }) {
+            Text("Go to Login")
+        }
+
         Button(onClick = {
-            navController.navigate("Login")
-        }
-        ) {
-            Text(text = stringResource(R.string.btn_login))
+            viewModel.clearUserData(context)  // Clear user data if needed
+        }) {
+            Text("Clear User Data")
         }
     }
-}
+    //context.deleteDatabase("DB") // Replace with your actual database name
 
-fun saveLoginCredentials(context: Context, email: String, password: String) {
-    val sharedPreferences = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
-    with(sharedPreferences.edit()) {
-        putString("EMAIL", email)
-        putString("PASSWORD", password)
-        apply()
-    }
-}
-// Function to validate email
-fun isValidEmail(emailInput: String): Boolean {
-    /*
-    val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$".toRegex()
-    return email.matches(emailRegex)
-    */
-    return true
-}
-fun isValidName(nameInput: String): Boolean {
-    //return nameInput.length > 1
-    return true
-}
-fun isValidSurname(surnameInput: String): Boolean {
-    //return surnameInput.length > 1
-    return true
 }

@@ -2,7 +2,6 @@ package com.example.porocilolovec.ui
 
 import android.content.Context
 import android.widget.Toast
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -22,9 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -41,113 +38,92 @@ import com.example.porocilolovec.R
 
 
 @Composable
-fun LoginScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: NavController){
-
+fun LoginScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: NavController) {
     var emailInput by remember { mutableStateOf("") }
     var passwordInput by remember { mutableStateOf("") }
 
-    // State variables for email and password
-    // Get the context
     val context = LocalContext.current
+    val sharedPreferences = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
 
-    // Load saved credentials
-    LaunchedEffect(Unit) {
-        val sharedPreferences = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
-        emailInput = sharedPreferences.getString("EMAIL", "") ?: ""
-        passwordInput = sharedPreferences.getString("PASSWORD", "") ?: ""
+    // Load saved credentials from SharedPreferences once
+    LaunchedEffect(sharedPreferences) {
+        val savedEmail = sharedPreferences.getString("USER_EMAIL", "")
+        val savedPassword = sharedPreferences.getString("USER_PASSWORD", "")
+
+        if (!savedEmail.isNullOrEmpty()) emailInput = savedEmail
+        if (!savedPassword.isNullOrEmpty()) passwordInput = savedPassword
     }
-
-    // Get the keyboard controller
-    val keyboardController = LocalSoftwareKeyboardController.current
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
-            .clickable {
-                // Dismiss the keyboard when clicking outside
-                keyboardController?.hide()
-            },
+            .padding(16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
         Text(
             text = stringResource(R.string.title_login),
-            style = TextStyle(
-                fontSize = 35.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black,
-                letterSpacing = 0.2.sp
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 30.dp),
+            style = TextStyle(fontSize = 35.sp, fontWeight = FontWeight.Bold),
+            modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         OutlinedTextField(
             value = emailInput,
-            onValueChange = {
-                emailInput = it
-                // Check email format
-                if (!isValidEmail(it)) {
-                    Toast.makeText(context, "Invalid email format", Toast.LENGTH_SHORT).show()
-                }
-            },
+            onValueChange = { emailInput = it },
             label = { Text("Email") },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions.Default.copy(
                 imeAction = ImeAction.Next,
-                keyboardType = KeyboardType.Email // Use Email type
+                keyboardType = KeyboardType.Email
             )
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Password input field
         OutlinedTextField(
             value = passwordInput,
-            onValueChange = {
-                if (it.length <= 20) {
-                    passwordInput = it
-                }
-            },
-            label = { Text(stringResource(R.string.text_password)) },
-            modifier = Modifier.fillMaxWidth(),
+            onValueChange = { passwordInput = it },
+            label = { Text("Password") },
             visualTransformation = PasswordVisualTransformation(),
+            modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions.Default.copy(
                 imeAction = ImeAction.Done,
                 keyboardType = KeyboardType.Password
             )
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
-        // Login button
-        Button(onClick = {
-            if (emailInput.isNotBlank() && passwordInput.isNotBlank()) {
-                viewModel.loginUser(emailInput, passwordInput, context, navController)
-            } else {
-                Toast.makeText(context, "Please fill all fields", Toast.LENGTH_SHORT).show()
-            }
-        }) {
+        Button(
+            onClick = {
+                if (emailInput.isNotBlank() && passwordInput.isNotBlank()) {
+                    viewModel.loginUser(emailInput, passwordInput, context) { user ->
+                        if (user != null) {
+                            Toast.makeText(context, "Welcome ${user.fullName}!", Toast.LENGTH_SHORT).show()
+                            navController.navigate("Home")
+                        } else {
+                            Toast.makeText(context, "Invalid credentials. Please try again.", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                } else {
+                    Toast.makeText(context, "Please fill all fields", Toast.LENGTH_SHORT).show()
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
             Text(text = stringResource(R.string.btn_login))
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Register button
-        Button(onClick = {
-            navController.navigate("Register")
-        }
+        Button(
+            onClick = { navController.navigate("Register") },
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Text(text = "I want to register")
+            Text("I want to register")
         }
-
-
     }
 }
-
