@@ -7,13 +7,12 @@ import androidx.room.Query
 import com.example.porocilolovec.ui.Connections
 
 @Dao
-interface ConnectionDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+interface ConnectionsDao {
+
+    @Insert
     suspend fun insertConnection(connection: Connections)
 
-    @Query("SELECT * FROM connections WHERE userId = :userId")
-    suspend fun getConnectionsByUserId(userId: Int): List<Connections>
-
-    @Query("SELECT employeeId FROM connections WHERE userId = :userId")
-    suspend fun getEmployeeIdsForUser(userId: Int): List<Int>
+    // You can also have a function to fetch connections if needed
+    @Query("SELECT * FROM connections WHERE userID = :userId OR employeeID = :userId")
+    suspend fun getUserConnections(userId: Int): List<Connections>
 }

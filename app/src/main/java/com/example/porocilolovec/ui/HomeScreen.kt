@@ -25,7 +25,7 @@ import com.example.porocilolovec.Hierarchy
 fun HomeScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: NavController) {
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
-    val savedWorkRequests = sharedPreferences.getString("USER_WORK_REQUESTS", "")
+    val savedWorkRequests = sharedPreferences.getString("WORK_REQUESTS", "")
 
     Column(
         modifier = Modifier
@@ -61,7 +61,8 @@ fun HomeScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: N
         Spacer(modifier = Modifier.height(32.dp))
 
         // Show "Work Requests" button if there are any work requests
-        if (!savedWorkRequests.isNullOrEmpty()) {
+        //if (!savedWorkRequests.isNullOrEmpty()) {
+        if (true) {
             Button(onClick = { navController.navigate(Hierarchy.workRequests.name) }) {
                 Text(text = "Work Requests")
             }

@@ -2,6 +2,7 @@ package com.example.porocilolovec.data
 
 import android.content.Context
 import android.util.Log
+import com.example.porocilolovec.ui.Connections
 //import androidx.preference.contains
 import com.example.porocilolovec.ui.Reports
 import com.example.porocilolovec.ui.User
@@ -9,6 +10,9 @@ import com.example.porocilolovec.ui.User
 class OfflineRepo(
     private val userDao: UserDao,
     private val reportDao: ReportDao,
+    private val connectionsDao: ConnectionsDao,
+    private val context: Context  // Add context to the constructor
+
 ) {
 
     // 📌 Dodaj uporabnika v bazo
@@ -85,6 +89,16 @@ class OfflineRepo(
         // Update the current user's workRequests with the new string
         userDao.updateWorkRequests(currentUserId, newWorkRequests)
     }
+
+    // Insert a new connection
+    suspend fun insertConnection(connection: Connections) {
+        connectionsDao.insertConnection(connection)
+    }
+    fun saveUpdatedWorkRequests(workRequests: String) {
+        val sharedPreferences = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+        sharedPreferences.edit().putString("WORK_REQUESTS", workRequests).apply()
+    }
+
 
 
 }

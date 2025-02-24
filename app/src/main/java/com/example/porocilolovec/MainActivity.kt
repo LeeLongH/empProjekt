@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.porocilolovec.data.OfflineRepo
 import com.example.porocilolovec.data.RoomDB
 import com.example.porocilolovec.data.UserDao
+import com.example.porocilolovec.data.ConnectionsDao
 import com.example.porocilolovec.ui.PorociloLovecViewModel
 import com.example.porocilolovec.ui.PorociloLovecViewModelFactory
 import com.example.porocilolovec.ui.theme.MainAppTheme
@@ -21,9 +22,10 @@ class MainActivity : ComponentActivity() {
         val database = RoomDB.getDatabase(applicationContext)
         val userDao = database.userDao() // Getting the UserDao
         val reportDao = database.reportDao() // Getting the ReportDao
+        val connectionsDao = database.connectionsDao() // Getting the ConnectionsDao
 
         // Initialize OfflineRepo with userDao and reportDao
-        val offlineRepo = OfflineRepo(userDao, reportDao)
+        val offlineRepo = OfflineRepo(userDao, reportDao, connectionsDao, applicationContext)
 
         // Pass context to ViewModelFactory
         val viewModelFactory = PorociloLovecViewModelFactory(offlineRepo, applicationContext)

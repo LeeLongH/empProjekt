@@ -63,6 +63,9 @@ class PorociloLovecViewModel(private val offlineRepo: OfflineRepo, private val c
     fun getCurrentUserProfession(): String {
         return sharedPreferences.getString("USER_PROFESSION", "No profession found") ?: "No profession found"
     }
+    fun getCurrentWorkRequests(): String {
+        return sharedPreferences.getString("WORK_REQUESTS", "") ?: ""
+    }
 
 
     // Clear user data from SharedPreferences
@@ -117,4 +120,49 @@ class PorociloLovecViewModel(private val offlineRepo: OfflineRepo, private val c
             offlineRepo.clearUserTable()
         }
     }
+    fun acceptWorkRequest(targetUserId: Int) {
+        viewModelScope.launch {
+            val currentUserId = getCurrentUserId()
+
+            // Create connections between the current user and the target user (employee)
+            val connection1 = Connections(userID = currentUserId, employeeID = targetUserId)
+            val connection2 = Connections(userID = targetUserId, employeeID = currentUserId)
+
+            // Insert both connections into the Connections table
+            offlineRepo.insertConnection(connection1)
+            offlineRepo.insertConnection(connection2)
+
+            // Optionally update the work requests list to reflect the accepted request
+            val updatedWorkRequests = getCurrentWorkRequests()
+                .split(" ")
+                .filter { it != targetUserId.toString() }
+                .joinToString(" ")
+
+            // Save the updated work requests back to SharedPreferences
+            offlineRepo.saveUpdatedWorkRequests(updatedWorkRequests)
+
+            // Optionally show a toast message indicating the success
+            Toast.makeText(context, "Work request accepted", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }

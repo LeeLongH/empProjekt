@@ -14,8 +14,9 @@ import com.example.porocilolovec.ui.Reports
 @TypeConverters(Converters::class) // Registering the TypeConverter here
 abstract class RoomDB : RoomDatabase() {
     abstract fun userDao(): UserDao
-    abstract fun connectionDao(): ConnectionDao
     abstract fun reportDao(): ReportDao
+    abstract fun connectionsDao(): ConnectionsDao  // This is important!
+
 
     companion object {
         @Volatile
