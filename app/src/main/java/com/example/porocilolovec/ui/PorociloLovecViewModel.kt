@@ -3,12 +3,16 @@ package com.example.porocilolovec.ui
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.porocilolovec.data.OfflineRepo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
+
 
 class PorociloLovecViewModel(private val offlineRepo: OfflineRepo, private val context: Context) : ViewModel() {
 
@@ -63,9 +67,6 @@ class PorociloLovecViewModel(private val offlineRepo: OfflineRepo, private val c
     fun getCurrentUserProfession(): String {
         return sharedPreferences.getString("USER_PROFESSION", "No profession found") ?: "No profession found"
     }
-    fun getCurrentWorkRequests(): String {
-        return sharedPreferences.getString("WORK_REQUESTS", "") ?: ""
-    }
 
 
     // Clear user data from SharedPreferences
@@ -84,6 +85,8 @@ class PorociloLovecViewModel(private val offlineRepo: OfflineRepo, private val c
             Log.d("PorociloLovecViewModel", "Users found: ${result.size}")
         }
     }
+
+
 
 
     // Function to get all users
@@ -122,32 +125,82 @@ class PorociloLovecViewModel(private val offlineRepo: OfflineRepo, private val c
     }
     fun acceptWorkRequest(targetUserId: Int) {
         viewModelScope.launch {
-            val currentUserId = getCurrentUserId()
+            try {
+                val currentUserId = getCurrentUserId()
 
-            // Create connections between the current user and the target user (employee)
-            val connection1 = Connections(userID = currentUserId, employeeID = targetUserId)
-            val connection2 = Connections(userID = targetUserId, employeeID = currentUserId)
+                // Create connections between the current user and the target user (employee)
+                val connection1 = Connections(userID = currentUserId, employeeID = targetUserId)
+                val connection2 = Connections(userID = targetUserId, employeeID = currentUserId)
 
-            // Insert both connections into the Connections table
-            offlineRepo.insertConnection(connection1)
-            offlineRepo.insertConnection(connection2)
+                // Insert both connections into the Connections table
+                offlineRepo.insertConnection(connection1)
+                offlineRepo.insertConnection(connection2)
 
-            // Optionally update the work requests list to reflect the accepted request
-            val updatedWorkRequests = getCurrentWorkRequests()
-                .split(" ")
-                .filter { it != targetUserId.toString() }
-                .joinToString(" ")
+                // Step 1: Get the current user's work requests (this could be a string of space-separated user IDs)
+                val currentWorkRequests = offlineRepo.getWorkRequests(currentUserId) ?: ""
 
-            // Save the updated work requests back to SharedPreferences
-            offlineRepo.saveUpdatedWorkRequests(updatedWorkRequests)
+                // Step 2: Remove the target user ID from the work requests string
+                val updatedWorkRequests = currentWorkRequests
+                    .split(" ")
+                    .filter { it != targetUserId.toString() }  // Remove the target user ID
+                    .joinToString(" ")  // Rejoin the list into a string
+                Log.d("AcceptRequest", "Updated work requests: $updatedWorkRequests")
 
-            // Optionally show a toast message indicating the success
-            Toast.makeText(context, "Work request accepted", Toast.LENGTH_SHORT).show()
+                // Step 3: Update the work requests in the database
+                offlineRepo.updateWorkRequests(currentUserId, updatedWorkRequests)
+
+                // Step 4: Optionally update the UI
+                // Remove the accepted user from the list of work requests (UI state)
+                _usersByIds.value = _usersByIds.value.filterNot { it.userID == targetUserId }
+
+                // Show a success toast
+                Toast.makeText(context, "Work request accepted", Toast.LENGTH_SHORT).show()
+
+            } catch (e: Exception) {
+                Log.e("AcceptRequest", "Error accepting work request: ${e.message}", e)
+            }
+        }
+    }
+
+
+    // Use a regular String to store the work requests (no need for Flow or LiveData)
+    var workRequests: String = ""
+        private set
+
+    // Retrieve work requests for the current user
+    fun getWorkRequests() {
+        val currentUserId = getCurrentUserId()
+        if (currentUserId == -1) {
+            Log.e("WORK_REQUEST", "User is not logged in.")
+            return
+        }
+
+        viewModelScope.launch {
+            try {
+                // Call OfflineRepo to get work requests from the database
+                val workRequestsString = offlineRepo.getWorkRequests(currentUserId)
+                workRequests = workRequestsString ?: "" // Set the workRequests to the fetched value
+                Log.d("WORK_REQUEST", "Work requests retrieved: $workRequestsString")
+            } catch (e: Exception) {
+                Log.e("WORK_REQUEST", "Error retrieving work requests: ${e.message}")
+            }
         }
     }
 
 
 
+
+    private val _usersByIds = MutableStateFlow<List<User>>(emptyList())
+    val usersByIds: StateFlow<List<User>> = _usersByIds
+
+    // Function to fetch users by their IDs
+    fun getUsersByIds(userIds: List<Int>) {
+        viewModelScope.launch {
+            val result = offlineRepo.getUsersByIds(userIds)
+            _usersByIds.value = result // This is the correct way to update the value
+            Log.d("PorociloLovecViewModel", "Users fetched by IDs: ${result.size}")
+        }
+    }
 
 
 

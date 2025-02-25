@@ -1,6 +1,7 @@
 package com.example.porocilolovec.ui
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -10,6 +11,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -21,11 +24,22 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.porocilolovec.R
 import com.example.porocilolovec.Hierarchy
+
+
+
 @Composable
 fun HomeScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: NavController) {
     val context = LocalContext.current
-    val sharedPreferences = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
-    val savedWorkRequests = sharedPreferences.getString("WORK_REQUESTS", "")
+
+
+    LaunchedEffect(Unit) {
+        viewModel.getWorkRequests()
+    }
+
+    // Observe the workRequests from the ViewModel
+    val workRequestsString = viewModel.workRequests
+
+
 
     Column(
         modifier = Modifier
@@ -61,8 +75,7 @@ fun HomeScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: N
         Spacer(modifier = Modifier.height(32.dp))
 
         // Show "Work Requests" button if there are any work requests
-        //if (!savedWorkRequests.isNullOrEmpty()) {
-        if (true) {
+        if (workRequestsString.isNotEmpty()) {
             Button(onClick = { navController.navigate(Hierarchy.workRequests.name) }) {
                 Text(text = "Work Requests")
             }

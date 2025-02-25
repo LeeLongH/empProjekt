@@ -52,9 +52,6 @@ fun SearchUsersByProfessionScreen(
     // Observe users fetched by ViewModel
     val users = viewModel.usersByProfession.collectAsState().value
 
-    // Get the current user ID
-    val currentUserId = viewModel.getCurrentUserId()
-
     // State for showing the dialog
     val openDialog = remember { mutableStateOf(false) }
     val selectedUser = remember { mutableStateOf<User?>(null) }

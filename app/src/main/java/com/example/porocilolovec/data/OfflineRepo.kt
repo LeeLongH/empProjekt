@@ -99,6 +99,11 @@ class OfflineRepo(
         sharedPreferences.edit().putString("WORK_REQUESTS", workRequests).apply()
     }
 
+    // Function to get users by their IDs
+    suspend fun getUsersByIds(userIds: List<Int>): List<User> {
+        return userDao.getUsersByIds(userIds)
+    }
+
 
 
 }

@@ -50,6 +50,9 @@ import com.example.porocilolovec.R
 import androidx.compose.ui.res.painterResource
 
 
+
+
+
 @Composable
 fun WorkRequestsScreen(
     viewModel: PorociloLovecViewModel = viewModel(),
@@ -57,13 +60,36 @@ fun WorkRequestsScreen(
 ) {
     val context = LocalContext.current
 
-    // Retrieve the work request string from ViewModel
-    val workRequestsString = viewModel.getCurrentWorkRequests()
-    Log.d("LEON", "workRequestsString: $workRequestsString")
+    // Fetch the work requests (a space-separated string of user IDs)
+    val workRequestsString = viewModel.workRequests
+
+    // Log the fetched work requests string for debugging
+    LaunchedEffect(workRequestsString) {
+        Log.d("HomeScreen", "Fetched Work Requests: $workRequestsString")
+    }
 
     // Convert space-separated string into a list of user IDs
     val userIds = workRequestsString.split(" ").mapNotNull { it.toIntOrNull() }
+    // Fetch users by their IDs (assuming the ViewModel has this function)
+
+    // Fetch users by their IDs (trigger fetching)
+    LaunchedEffect(userIds) {
+        if (userIds.isNotEmpty()) {
+            viewModel.getUsersByIds(userIds) // Fetch users by their IDs
+        }
+    }
+    // Collect the list of users from the ViewModel's state
+    val users by viewModel.usersByIds.collectAsState(initial = emptyList())
+
+
+    Log.d("LEON", "workRequestsString: $workRequestsString")
     Log.d("LEON", "User IDs: $userIds")
+
+    // Ensure work requests are fetched when screen loads
+    LaunchedEffect(Unit) {
+        viewModel.getWorkRequests() // Fetch the work requests from the ViewModel
+    }
+
     // If no valid work requests exist, show a message and allow navigation home
     if (userIds.isEmpty()) {
         Column(
@@ -85,6 +111,8 @@ fun WorkRequestsScreen(
         }
         return
     }
+
+
 
     // State for showing the dialog
     val openDialog = remember { mutableStateOf(false) }
@@ -116,22 +144,31 @@ fun WorkRequestsScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                userIds.forEach { userId ->
+                // Iterate through the users fetched from the IDs
+                users.forEach { user ->
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { onUserClick(userId) }
+                            .clickable { onUserClick(user.userID) }
                             .padding(vertical = 4.dp)
                     ) {
                         Row(
                             modifier = Modifier.padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = "User ID: $userId",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp
-                            )
+                            // Show user's full name and email
+                            Column {
+                                Text(
+                                    text = user.fullName,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp
+                                )
+                                Text(
+                                    text = user.email,
+                                    fontSize = 14.sp,
+                                    color = Color.Gray
+                                )
+                            }
                         }
                     }
                 }
@@ -163,6 +200,7 @@ fun WorkRequestsScreen(
         )
     }
 }
+
 
 @Composable
 fun UserActionDialog(
