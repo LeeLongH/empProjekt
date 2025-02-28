@@ -183,6 +183,8 @@ fun WorkRequestsScreen(
         }
     }
 
+
+
     // Dialog to confirm work request acceptance
     if (openDialog.value && selectedUserId.value != null) {
         UserActionDialog(
@@ -193,13 +195,20 @@ fun WorkRequestsScreen(
                 openDialog.value = false
                 Toast.makeText(context, "Work request accepted from User ID $targetUserId", Toast.LENGTH_SHORT).show()
             },
-            onRejectRequest = {
-                openDialog.value = false
-                Toast.makeText(context, "Work request rejected from User ID ${selectedUserId.value}", Toast.LENGTH_SHORT).show()
+            onRejectRequest = { // Correct the lambda to accept targetUserId
+                val targetUserId = selectedUserId.value // Get the targetUserId from selectedUserId
+                if (targetUserId != null) {
+                    viewModel.rejectWorkRequest(targetUserId.toString())
+                    openDialog.value = false
+                    Toast.makeText(context, "Work request rejected from User ID $targetUserId", Toast.LENGTH_SHORT).show()
+                }
             }
         )
     }
+
+
 }
+
 
 
 @Composable

@@ -147,7 +147,7 @@ class PorociloLovecViewModel(private val offlineRepo: OfflineRepo, private val c
                 Log.d("AcceptRequest", "Updated work requests: $updatedWorkRequests")
 
                 // Step 3: Update the work requests in the database
-                offlineRepo.updateWorkRequests(currentUserId, updatedWorkRequests)
+                offlineRepo.addWorkRequests(currentUserId, updatedWorkRequests)
 
                 // Step 4: Optionally update the UI
                 // Remove the accepted user from the list of work requests (UI state)
@@ -201,6 +201,15 @@ class PorociloLovecViewModel(private val offlineRepo: OfflineRepo, private val c
             Log.d("PorociloLovecViewModel", "Users fetched by IDs: ${result.size}")
         }
     }
+
+
+    fun rejectWorkRequest(requestToRemove: String) {
+        val currentUserId = getCurrentUserId()
+        viewModelScope.launch {
+            offlineRepo.rejectWorkRequest(currentUserId, requestToRemove)
+        }
+    }
+
 
 
 

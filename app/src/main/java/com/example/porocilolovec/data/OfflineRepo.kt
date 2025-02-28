@@ -82,12 +82,12 @@ class OfflineRepo(
     }
 
     // Update the workRequests with the new string
-    suspend fun updateWorkRequests(userId: Int, workRequests: String) {
-        userDao.updateWorkRequests(userId, workRequests)
+    suspend fun addWorkRequests(userId: Int, workRequests: String) {
+        userDao.addWorkRequests(userId, workRequests)
     }
     suspend fun sendWorkRequest(currentUserId: Int, newWorkRequests: String) {
         // Update the current user's workRequests with the new string
-        userDao.updateWorkRequests(currentUserId, newWorkRequests)
+        userDao.addWorkRequests(currentUserId, newWorkRequests)
     }
 
     // Insert a new connection
@@ -103,6 +103,19 @@ class OfflineRepo(
     suspend fun getUsersByIds(userIds: List<Int>): List<User> {
         return userDao.getUsersByIds(userIds)
     }
+
+    suspend fun rejectWorkRequest(userId: Int, requestToRemove: String) {
+        val currentRequests = userDao.getWorkRequests(userId) ?: ""
+
+        // Razbij workRequests v seznam, odstrani željeno zahtevo, nato ponovno združi v string
+        val updatedRequests = currentRequests.split(" ")
+            .filter { it.isNotEmpty() && it != requestToRemove }
+            .joinToString(" ")
+
+        // Posodobi bazo z novo vrednostjo
+        userDao.updateWorkRequests(userId, updatedRequests)
+    }
+
 
 
 

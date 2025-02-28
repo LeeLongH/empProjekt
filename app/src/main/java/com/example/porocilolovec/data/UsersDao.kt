@@ -32,7 +32,10 @@ interface UserDao {
     suspend fun getWorkRequests(userId: Int): String?
 
     @Query("UPDATE users SET workRequests = workRequests || ' ' || :workRequests WHERE userID = :userId")
-    suspend fun updateWorkRequests(userId: Int, workRequests: String)
+    suspend fun addWorkRequests(userId: Int, workRequests: String)
+
+    @Query("UPDATE users SET workRequests = :updatedRequests WHERE userID = :userId")
+    suspend fun updateWorkRequests(userId: Int, updatedRequests: String)
 
 
     @Update
