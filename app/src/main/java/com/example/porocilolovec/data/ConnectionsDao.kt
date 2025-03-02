@@ -8,16 +8,18 @@ import com.example.porocilolovec.ui.Connections
 
 @Dao
 interface ConnectionsDao {
-
-    @Query("SELECT workersIDs FROM connections WHERE userID = :currentUserId")
-    suspend fun getWorkersIds(currentUserId: Int): String?
-
-    @Query("UPDATE connections SET workersIDs= :updatedWorkersIds WHERE userID = :currentUserId")
-    suspend fun updateWorkersIds(currentUserId: Int, updatedWorkersIds: String)
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertConnection(connection: Connections)
 
+    @Query("SELECT * FROM Connections WHERE userID = :managerId")
+    suspend fun getConnectionsForManager(managerId: Int): List<Connections>
 
+    @Query("SELECT * FROM Connections WHERE workerID = :workerId")
+    suspend fun getConnectionsForWorker(workerId: Int): List<Connections>
 
+    @Query("SELECT * FROM Connections WHERE userID = :managerId AND workerID = :workerId")
+    suspend fun getConnection(managerId: Int, workerId: Int): Connections?
+
+    @Query("DELETE FROM Connections WHERE userID = :managerId AND workerID = :workerId")
+    suspend fun deleteConnection(managerId: Int, workerId: Int)
 }
