@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import com.example.porocilolovec.data.ConnectionsDao
 
 
 class PorociloLovecViewModel(private val offlineRepo: OfflineRepo, private val context: Context) : ViewModel() {
@@ -21,6 +22,7 @@ class PorociloLovecViewModel(private val offlineRepo: OfflineRepo, private val c
 
     private val _usersByProfession = MutableStateFlow<List<User>>(emptyList())
     val usersByProfession: StateFlow<List<User>> = _usersByProfession
+
 
     private val sharedPreferences = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
 
@@ -123,45 +125,6 @@ class PorociloLovecViewModel(private val offlineRepo: OfflineRepo, private val c
             offlineRepo.clearUserTable()
         }
     }
-    fun acceptWorkRequest(targetUserId: Int) {
-        viewModelScope.launch {
-            try {
-                val currentUserId = getCurrentUserId()
-
-                // Create connections between the current user and the target user (employee)
-                val connection1 = Connections(userID = currentUserId, employeeID = targetUserId)
-                val connection2 = Connections(userID = targetUserId, employeeID = currentUserId)
-
-                // Insert both connections into the Connections table
-                offlineRepo.insertConnection(connection1)
-                offlineRepo.insertConnection(connection2)
-
-                // Step 1: Get the current user's work requests (this could be a string of space-separated user IDs)
-                val currentWorkRequests = offlineRepo.getWorkRequests(currentUserId) ?: ""
-
-                // Step 2: Remove the target user ID from the work requests string
-                val updatedWorkRequests = currentWorkRequests
-                    .split(" ")
-                    .filter { it != targetUserId.toString() }  // Remove the target user ID
-                    .joinToString(" ")  // Rejoin the list into a string
-                Log.d("AcceptRequest", "Updated work requests: $updatedWorkRequests")
-
-                // Step 3: Update the work requests in the database
-                offlineRepo.addWorkRequests(currentUserId, updatedWorkRequests)
-
-                // Step 4: Optionally update the UI
-                // Remove the accepted user from the list of work requests (UI state)
-                _usersByIds.value = _usersByIds.value.filterNot { it.userID == targetUserId }
-
-                // Show a success toast
-                Toast.makeText(context, "Work request accepted", Toast.LENGTH_SHORT).show()
-
-            } catch (e: Exception) {
-                Log.e("AcceptRequest", "Error accepting work request: ${e.message}", e)
-            }
-        }
-    }
-
 
     // Use a regular String to store the work requests (no need for Flow or LiveData)
     var workRequests: String = ""
@@ -209,6 +172,23 @@ class PorociloLovecViewModel(private val offlineRepo: OfflineRepo, private val c
             offlineRepo.rejectWorkRequest(currentUserId, requestToRemove)
         }
     }
+
+    // Update users list after rejection
+    fun updateUsersList(updatedUsers: List<User>) {
+        _usersByIds.value = updatedUsers
+    }
+
+    suspend fun acceptWorkRequest(targetUserId: Int) {
+        val currentUserId = getCurrentUserId()
+        offlineRepo.acceptWorkRequest(currentUserId, targetUserId)
+
+        // Remove the accepted user from the list
+        val updatedUsers = _usersByIds.value.filterNot { it.userID == targetUserId }
+        _usersByIds.value = updatedUsers
+
+        rejectWorkRequest(targetUserId.toString())
+    }
+
 
 
 

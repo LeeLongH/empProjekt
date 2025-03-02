@@ -48,9 +48,8 @@ import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.example.porocilolovec.R
 import androidx.compose.ui.res.painterResource
-
-
-
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -70,7 +69,6 @@ fun WorkRequestsScreen(
 
     // Convert space-separated string into a list of user IDs
     val userIds = workRequestsString.split(" ").mapNotNull { it.toIntOrNull() }
-    // Fetch users by their IDs (assuming the ViewModel has this function)
 
     // Fetch users by their IDs (trigger fetching)
     LaunchedEffect(userIds) {
@@ -78,12 +76,9 @@ fun WorkRequestsScreen(
             viewModel.getUsersByIds(userIds) // Fetch users by their IDs
         }
     }
+
     // Collect the list of users from the ViewModel's state
     val users by viewModel.usersByIds.collectAsState(initial = emptyList())
-
-
-    Log.d("LEON", "workRequestsString: $workRequestsString")
-    Log.d("LEON", "User IDs: $userIds")
 
     // Ensure work requests are fetched when screen loads
     LaunchedEffect(Unit) {
@@ -112,8 +107,6 @@ fun WorkRequestsScreen(
         return
     }
 
-
-
     // State for showing the dialog
     val openDialog = remember { mutableStateOf(false) }
     val selectedUserId = remember { mutableStateOf<Int?>(null) }
@@ -122,6 +115,20 @@ fun WorkRequestsScreen(
     fun onUserClick(userId: Int) {
         selectedUserId.value = userId
         openDialog.value = true
+    }
+
+    // Function to handle rejection and update the UI
+    fun onRejectRequest(userId: Int) {
+        // Reject the work request and update the UI
+        viewModel.rejectWorkRequest(userId.toString())
+        Toast.makeText(context, "Work request rejected from User ID $userId", Toast.LENGTH_SHORT).show()
+
+        // Remove the rejected user from the list
+        val updatedUsers = users.filterNot { it.userID == userId }
+
+        // Update the users list with the rejected user removed
+        viewModel.updateUsersList(updatedUsers)
+        openDialog.value = false
     }
 
     Column(
@@ -183,32 +190,28 @@ fun WorkRequestsScreen(
         }
     }
 
-
-
-    // Dialog to confirm work request acceptance
+    // Dialog to confirm work request acceptance or rejection
     if (openDialog.value && selectedUserId.value != null) {
         UserActionDialog(
             userId = selectedUserId.value!!,
             onDismiss = { openDialog.value = false },
             onAcceptRequest = { targetUserId ->
-                viewModel.acceptWorkRequest(targetUserId)
-                openDialog.value = false
-                Toast.makeText(context, "Work request accepted from User ID $targetUserId", Toast.LENGTH_SHORT).show()
-            },
-            onRejectRequest = { // Correct the lambda to accept targetUserId
-                val targetUserId = selectedUserId.value // Get the targetUserId from selectedUserId
-                if (targetUserId != null) {
-                    viewModel.rejectWorkRequest(targetUserId.toString())
+                viewModel.viewModelScope.launch {  // Launch coroutine
+                    viewModel.acceptWorkRequest(targetUserId)
                     openDialog.value = false
-                    Toast.makeText(context, "Work request rejected from User ID $targetUserId", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Work request accepted from User ID $targetUserId", Toast.LENGTH_SHORT).show()
                 }
+            },
+            onRejectRequest = {
+                val targetUserId = selectedUserId.value
+                if (targetUserId != null) {
+                    onRejectRequest(targetUserId)
+                }
+                Toast.makeText(context, "User ID $targetUserId work request rejected ", Toast.LENGTH_SHORT).show()
             }
         )
     }
-
-
 }
-
 
 
 @Composable

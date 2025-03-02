@@ -15,7 +15,7 @@ import com.example.porocilolovec.ui.Reports
 abstract class RoomDB : RoomDatabase() {
     abstract fun userDao(): UserDao
     abstract fun reportDao(): ReportDao
-    abstract fun connectionsDao(): ConnectionsDao  // This is important!
+    abstract fun connectionsDao(): ConnectionsDao
 
 
     companion object {
@@ -27,7 +27,7 @@ abstract class RoomDB : RoomDatabase() {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     RoomDB::class.java,
-                    "DB3"
+                    "DB8"
                 ).build()
                 INSTANCE = instance
                 instance

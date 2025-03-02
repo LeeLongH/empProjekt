@@ -117,6 +117,25 @@ class OfflineRepo(
     }
 
 
+    suspend fun acceptWorkRequest(currentUserId: Int, targetUserId: Int) {
+        // Ensure user exists before updating (insert only if the user doesn't already exist)
+        val existingEmployeeIds = connectionsDao.getWorkersIds(currentUserId) ?: ""
+        Log.d("WORKD", "Existing employee IDs: $existingEmployeeIds")
+
+        if (existingEmployeeIds.isBlank()) {
+            // If there's no existing record for the user, insert a new record with an empty workersIDs
+            Log.d("WORKD", "Inserting new record for user $currentUserId")
+            connectionsDao.insertConnection(Connections(userID = currentUserId, workersIDs = targetUserId.toString()))
+        } else {
+            // If there are existing worker IDs, append the new targetUserId
+            val updatedEmployeeIds = "$existingEmployeeIds $targetUserId"
+            Log.d("WORKD", "Updated employee IDs: $updatedEmployeeIds")
+
+            connectionsDao.updateWorkersIds(currentUserId, updatedEmployeeIds)
+        }
+    }
+
+
 
 
 }

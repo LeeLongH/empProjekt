@@ -55,19 +55,18 @@ data class Reports(
         ForeignKey(
             entity = User::class,
             parentColumns = ["userID"],
-            childColumns = ["employeeID"],
+            childColumns = ["workersIDs"],
             onDelete = ForeignKey.CASCADE
         )
     ],
     indices = [
-        Index(value = ["userID", "employeeID"]),
-        Index("employeeID") // Add an index on employeeID
+        Index("userID"),
+        Index("workersIDs")
     ]
 )
 data class Connections(
-    @PrimaryKey val connectionID: Int = 0,
-    val userID: Int, // Now a foreign key
-    val employeeID: Int // Now a foreign key
+    @PrimaryKey val userID: Int, // Now the primary key
+    val workersIDs: String // A string that contains employee IDs separated by a space
 )
 
 class Converters {

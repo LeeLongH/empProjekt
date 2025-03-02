@@ -9,10 +9,15 @@ import com.example.porocilolovec.ui.Connections
 @Dao
 interface ConnectionsDao {
 
-    @Insert
+    @Query("SELECT workersIDs FROM connections WHERE userID = :currentUserId")
+    suspend fun getWorkersIds(currentUserId: Int): String?
+
+    @Query("UPDATE connections SET workersIDs= :updatedWorkersIds WHERE userID = :currentUserId")
+    suspend fun updateWorkersIds(currentUserId: Int, updatedWorkersIds: String)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertConnection(connection: Connections)
 
-    // You can also have a function to fetch connections if needed
-    @Query("SELECT * FROM connections WHERE userID = :userId OR employeeID = :userId")
-    suspend fun getUserConnections(userId: Int): List<Connections>
+
+
 }
