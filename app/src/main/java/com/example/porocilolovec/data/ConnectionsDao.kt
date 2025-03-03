@@ -22,4 +22,8 @@ interface ConnectionsDao {
 
     @Query("DELETE FROM Connections WHERE userID = :managerId AND workerID = :workerId")
     suspend fun deleteConnection(managerId: Int, workerId: Int)
+
+    @Query("SELECT userID FROM Connections WHERE workerID = :workerID")
+    suspend fun getManagerIdsForHunter(workerID: Int): List<Int>
+
 }

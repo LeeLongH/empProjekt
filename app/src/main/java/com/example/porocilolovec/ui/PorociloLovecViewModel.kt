@@ -151,21 +151,6 @@ class PorociloLovecViewModel(private val offlineRepo: OfflineRepo, private val c
     }
 
 
-
-
-    private val _usersByIds = MutableStateFlow<List<User>>(emptyList())
-    val usersByIds: StateFlow<List<User>> = _usersByIds
-
-    // Function to fetch users by their IDs
-    fun getUsersByIds(userIds: List<Int>) {
-        viewModelScope.launch {
-            val result = offlineRepo.getUsersByIds(userIds)
-            _usersByIds.value = result // This is the correct way to update the value
-            Log.d("PorociloLovecViewModel", "Users fetched by IDs: ${result.size}")
-        }
-    }
-
-
     fun rejectWorkRequest(requestToRemove: String) {
         val currentUserId = getCurrentUserId()
         viewModelScope.launch {
@@ -188,10 +173,22 @@ class PorociloLovecViewModel(private val offlineRepo: OfflineRepo, private val c
 
         rejectWorkRequest(targetUserId.toString())
     }
+    suspend fun getManagerIdsForHunter(workerID: Int): List<Int> {
+        return offlineRepo.getManagerIdsForHunter(workerID)
+    }
 
 
+    private val _usersByIds = MutableStateFlow<List<User>>(emptyList())
+    val usersByIds: StateFlow<List<User>> = _usersByIds
 
-
+    // Function to fetch users by their IDs
+    fun getUsersByIds(userIds: List<Int>) {
+        viewModelScope.launch {
+            val result = offlineRepo.getUsersByIds(userIds)
+            _usersByIds.value = result // This is the correct way to update the value
+            Log.d("AAA", "Fetched users by IDs: ${result.size}")
+        }
+    }
 
 
 

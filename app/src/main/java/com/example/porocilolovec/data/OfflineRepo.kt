@@ -25,6 +25,10 @@ class OfflineRepo(
         return userDao.getUserById(userId)
     }
 
+    // Function to get users by their IDs
+    suspend fun getUsersByIds(userIds: List<Int>): List<User> {
+        return userDao.getUsersByIds(userIds)
+    }
 
     // 📌 Dodaj poročilo in ga shrani v tabelo reports
     suspend fun addReport(userId: Int, report: Reports) {
@@ -99,10 +103,6 @@ class OfflineRepo(
         sharedPreferences.edit().putString("WORK_REQUESTS", workRequests).apply()
     }
 
-    // Function to get users by their IDs
-    suspend fun getUsersByIds(userIds: List<Int>): List<User> {
-        return userDao.getUsersByIds(userIds)
-    }
 
     suspend fun rejectWorkRequest(userId: Int, requestToRemove: String) {
         val currentRequests = userDao.getWorkRequests(userId) ?: ""
@@ -131,7 +131,9 @@ class OfflineRepo(
         }
     }
 
-
+    suspend fun getManagerIdsForHunter(workerID: Int): List<Int> {
+        return connectionsDao.getManagerIdsForHunter(workerID)
+    }
 
 
 }
