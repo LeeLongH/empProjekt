@@ -8,28 +8,33 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+
+val DarkTextColor = Color(0xFF000000) // Black color for text
+val LightTextColor = Color(0xFF000000) // Black color for text, you can adjust this if you need lighter black or grey
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
     secondary = PurpleGrey80,
-    tertiary = Pink80
+    tertiary = Pink80,
+    onPrimary = Color.White, // Text color on primary
+    onSecondary = Color.White, // Text color on secondary
+    onTertiary = Color.White // Text color on tertiary
 )
 
 private val LightColorScheme = lightColorScheme(
     primary = Purple40,
     secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
+    tertiary = Pink40 ,
+    onPrimary = Color.White, // Text color on primary
+    onSecondary = Color.White, // Text color on secondary
+    onTertiary = Color.White, // Text color on tertiary
+    // You can customize the background and surface here if needed
     background = Color(0xFFFFFBFE),
     surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    onBackground = Color(0xFF1C1B1F), // Dark text on background
+    onSurface = Color(0xFF1C1B1F) // Dark text on surface
 )
 
 @Composable

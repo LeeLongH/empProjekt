@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,8 +36,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.porocilolovec.R
-
-
 
 @Composable
 fun LoginScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: NavController) {
@@ -112,7 +112,8 @@ fun LoginScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: 
                     Toast.makeText(context, "Please fill all fields", Toast.LENGTH_SHORT).show()
                 }
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+
         ) {
             Text(text = stringResource(R.string.btn_login))
         }
@@ -121,7 +122,7 @@ fun LoginScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: 
 
         Button(
             onClick = { navController.navigate("Register") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Text("I want to register")
         }

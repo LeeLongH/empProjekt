@@ -3,12 +3,17 @@ package com.example.porocilolovec.ui
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
 import android.media.MediaPlayer
+import android.util.Base64
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,10 +26,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
@@ -41,7 +49,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -68,13 +79,22 @@ import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
+import androidx.compose.animation.*
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.rememberUpdatedState
+import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import org.json.JSONException
+import org.json.JSONObject
 
 @SuppressLint("DefaultLocale")
 @Composable
 fun ReportScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: NavController) {
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
+
     var isButtonActive by remember { mutableStateOf(false) }
     var startTime by remember { mutableStateOf<Date?>(null) }
     var elapsedMinutes by remember { mutableIntStateOf(0) }
@@ -82,61 +102,70 @@ fun ReportScreen(viewModel: PorociloLovecViewModel = viewModel(), navController:
     var toText by remember { mutableStateOf("") }
     var durationText by remember { mutableStateOf("") }
 
+    val transcribedText = remember { mutableStateOf("") }
+
     RequestPermissions(context)
 
-    // Funkcija za začetek/ustavitev timerja
-    fun startStopTimer() {
-        if (!isButtonActive) {
-            // Začetek timerja
-            isButtonActive = true
-            // Preverimo, ali je "Od ura" že nastavljena
-            if (fromText.isBlank()) {
-                // Če ni nastavljena, nastavimo trenutni čas
-                startTime = Date() // Nastavi začetni čas
-                fromText = SimpleDateFormat("HH:mm", Locale.getDefault()).format(startTime!!)
-            }
-            durationText = "Trajanje: 0 ur 0 min"
-        } else {
-            // Ustavitev timerja
-            isButtonActive = false
-            val endTime = Date()
-            elapsedMinutes = ((endTime.time - startTime!!.time) / (1000 * 60)).toInt() // Izračunaj pretečeni čas v minutah
-            val hours = elapsedMinutes / 60
-            val minutes = elapsedMinutes % 60
-            toText = SimpleDateFormat("HH:mm", Locale.getDefault()).format(endTime)
-
-            // Če "do ura" ni bilo izpolnjeno, se nastavi s trenutnim časom
-            if (toText.isBlank()) {
-                toText = SimpleDateFormat("HH:mm", Locale.getDefault()).format(endTime)
-            }
-            // Izračunaj in prikaži trajanje
-            durationText = "Trajanje: $hours ur $minutes min"
-        }
-    }
-
-    // Posodobitev trajanja ob spremembi "Od ura" ali "Do ura"
     fun updateDuration() {
-        if (fromText.isNotBlank() && toText.isNotBlank()) {
+        if (fromText.isNotBlank()) {
             try {
                 val format = SimpleDateFormat("HH:mm", Locale.getDefault())
                 val start = format.parse(fromText)!!
-                val end = format.parse(toText)!!
+
+                val end = if (toText.isNotBlank()) {
+                    format.parse(toText)!!
+                } else if (isButtonActive) {
+                    Date() // If button is active, update dynamically every minute
+                } else {
+                    return // If `toText` is blank and button is inactive, don't update
+                }
 
                 val diff = end.time - start.time
                 val minutes = (diff / (1000 * 60)).toInt()
                 val hours = minutes / 60
                 val remainingMinutes = minutes % 60
+
                 durationText = "Trajanje: $hours ur $remainingMinutes min"
             } catch (e: Exception) {
-                // If parsing fails, keep the previous value or handle the error as needed
+                // Handle parsing error
             }
         }
     }
 
-    // Observe changes to 'fromText' and 'toText' and update duration
+    // Start/Stop Timer
+    fun startStopTimer() {
+        if (!isButtonActive) {
+            isButtonActive = true
+            if (fromText.isBlank()) {
+                startTime = Date()
+                fromText = SimpleDateFormat("HH:mm", Locale.getDefault()).format(startTime!!)
+            }
+            durationText = "Trajanje: 0 ur 0 min"
+        } else {
+            isButtonActive = false
+            val endTime = Date()
+            elapsedMinutes = ((endTime.time - startTime!!.time) / (1000 * 60)).toInt()
+            val hours = elapsedMinutes / 60
+            val minutes = elapsedMinutes % 60
+            toText = SimpleDateFormat("HH:mm", Locale.getDefault()).format(endTime)
+
+            updateDuration()
+        }
+    }
+
+    // Update every minute while the timer is active OR if `toText` is blank
+    LaunchedEffect(isButtonActive, toText) {
+        while (isButtonActive || toText.isBlank()) {
+            updateDuration()
+            delay(60000) // Update every minute
+        }
+    }
+
+    // Observe changes to 'fromText' and 'toText' to trigger updates
     LaunchedEffect(fromText, toText) {
         updateDuration()
     }
+
 
     // Klic funkcije za obvladovanje časa
     manageTimer(
@@ -152,13 +181,19 @@ fun ReportScreen(viewModel: PorociloLovecViewModel = viewModel(), navController:
         onElapsedMinutesChanged = { newElapsedMinutes -> elapsedMinutes = newElapsedMinutes }
     )
 
+
+    val scrollState = rememberScrollState()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .verticalScroll(scrollState)
+            .drawVerticalScrollbar(scrollState)  // Indikator na desni strani
+        .padding(16.dp)
             .clickable {
                 keyboardController?.hide()
             },
+
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
@@ -169,10 +204,10 @@ fun ReportScreen(viewModel: PorociloLovecViewModel = viewModel(), navController:
         )
 
         // Text input for report description
-        ReportTextField()
+        ReportTextField(transcribedText)
 
         // Recording buttons
-        RecordingControls()
+        RecordingControls(transcribedText)
 
 
         if (isButtonActive) {
@@ -268,6 +303,8 @@ fun ReportScreen(viewModel: PorociloLovecViewModel = viewModel(), navController:
 
         // Navigation buttons
         NavigationButtons(navController)
+
+        ScrollIndicator()
     }
 }
 
@@ -345,11 +382,15 @@ fun SubmitButton(navController: NavController, distanceInKm: String) {
     }
 }
 
-
-// Report Text Field
 @Composable
-fun ReportTextField() {
+fun ReportTextField(transcribedText: MutableState<String>) {
     var reportText by remember { mutableStateOf("") }
+    val updatedText by rememberUpdatedState(transcribedText.value) // Vedno sledi zadnji vrednosti
+
+    LaunchedEffect(updatedText) {
+        reportText = updatedText
+    }
+
     OutlinedTextField(
         value = reportText,
         onValueChange = { reportText = it },
@@ -366,9 +407,10 @@ fun ReportTextField() {
     )
 }
 
+
 // Recording Controls
 @Composable
-fun RecordingControls() {
+fun RecordingControls(transcribedText: MutableState<String>) {
     val context = LocalContext.current
     var isRecording by remember { mutableStateOf(false) }
     var audioFile: File? by remember { mutableStateOf(null) }
@@ -413,7 +455,7 @@ fun RecordingControls() {
             Spacer(modifier = Modifier.width(8.dp))
             Button(
                 onClick = {
-                    convertAudioToText(audioFile!!)
+                    convertAudioToTextTest(audioFile!!, context, transcribedText)
                 },
                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
                 modifier = Modifier.weight(1f)
@@ -446,47 +488,6 @@ fun RecordingControls() {
     }
 }
 
-// Time Entry Controls
-@Composable
-fun TimeEntryControls(fromText: String, toText: String, isButtonActive: Boolean, elapsedMinutes: Int, startTime: Date?, onFromTextChange: (String) -> Unit, onToTextChange: (String) -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        OutlinedTextField(
-            value = fromText,
-            onValueChange = {
-                if (!isButtonActive) {
-                    onFromTextChange(it)
-                }
-            },
-            label = { Text("Od ure:") },
-            modifier = Modifier.weight(1f),
-            keyboardOptions = KeyboardOptions.Default.copy(
-                imeAction = ImeAction.Done,
-                keyboardType = KeyboardType.Number
-            )
-        )
-
-        OutlinedTextField(
-            value = toText,
-            onValueChange = {
-                if (!isButtonActive) {
-                    onToTextChange(it)
-                }
-            },
-            label = { Text("Do ure:") },
-            modifier = Modifier.weight(1f),
-            keyboardOptions = KeyboardOptions.Default.copy(
-                imeAction = ImeAction.Done,
-                keyboardType = KeyboardType.Number
-            )
-        )
-    }
-}
 
 // User Selection Dropdown
 @Composable
@@ -523,7 +524,7 @@ fun SimpleDropdownMenu(viewModel: PorociloLovecViewModel) {
                     .verticalScroll(rememberScrollState())
             ) {
                 if (userList.isEmpty()) {
-                    Text("No users available.")
+                    Text("Nimate dodanih upravljalcev lovišč")
                 } else {
                     userList.forEach { user ->
                         Text(
@@ -615,61 +616,131 @@ fun playAudioFile(audioFile: File, context: Context) {
 }
 
 
-
-fun convertAudioToText(audioFile: File) {
-    Log.d("milestone", "Starting convertAudioToText()")
-
-    // Ensure that audio file exists
+fun convertAudioToText(audioFile: File, context: Context, transcribedText: MutableState<String>) {
     if (!audioFile.exists() || audioFile.length() == 0L) {
-        Log.d("milestone", "Error: Audio file doesn't exist or is empty.")
+        Log.e("SSS", "Napaka: Zvočna datoteka ne obstaja ali je prazna.")
         return
     }
 
-    Log.d("milestone", "Audio file exists, proceeding with the upload.")
-
-    // Create OkHttpClient instance
     val client = OkHttpClient()
-
-    // Create the request body with the audio file
     val requestBody = MultipartBody.Builder()
         .setType(MultipartBody.FORM)
-        .addFormDataPart(
-            "file",  // Form field for the file
-            audioFile.name,  // File name
-            audioFile.asRequestBody("audio/wav".toMediaTypeOrNull())  // Content type of the file
-        )
+        .addFormDataPart("file", audioFile.name, RequestBody.create("audio/wav".toMediaTypeOrNull(), audioFile))
+        .addFormDataPart("model", "whisper-1") // Model v body
         .build()
 
-    Log.d("milestone", "Request body created, preparing to send request.")
-
-    // Prepare the request with all necessary headers (matching your snippet)
     val request = Request.Builder()
-        .url("https://real-time-speech-processing-api.p.rapidapi.com/asr?task=transcribe&word_timestamps=false&output=txt&encode=true&language=af")
-        .post(requestBody)  // Attach the file as part of the POST request body
-        .addHeader("x-rapidapi-key", "f91dfae6bcmshfbf494048f276ddp1a5331jsn670a9c89fe73")  // Your RapidAPI key
-        .addHeader("x-rapidapi-host", "real-time-speech-processing-api.p.rapidapi.com")
-        .addHeader("Content-Type", "application/x-www-form-urlencoded")  // Keeping this header as per your snippet
+        .url("https://api.openai.com/v1/audio/transcriptions") // OpenAI Whisper API
+        .post(requestBody)
+        .addHeader("Authorization", "Bearer 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")
+        .addHeader("Accept", "application/json")
         .build()
 
-    Log.d("milestone", "Request prepared, sending request.")
-
-    // Send the request on a separate thread to avoid blocking UI thread
-    Thread {
+    CoroutineScope(Dispatchers.IO).launch {
         try {
             val response = client.newCall(request).execute()
+            val responseBody = response.body?.string() ?: "No response received"
 
-            // Check if the response is successful
             if (response.isSuccessful) {
-                val responseText = response.body?.string()
-                Log.d("milestone", "Success: $responseText")
+                Log.d("SSS", "Uspeh: $responseBody")
+                // Extracting the transcription from the response JSON
+                val jsonResponse = JSONObject(responseBody)
+                val transcription = jsonResponse.optString("text", "No transcription found")
+
+                // Updating the transcribedText state on the main thread
+                (context as Activity).runOnUiThread {
+                    transcribedText.value = transcription // Update the TextField with the transcription
+                    Toast.makeText(context, "Transkripcija: $transcription", Toast.LENGTH_LONG).show()
+                }
             } else {
-                val errorBody = response.body?.string()
-                Log.d("milestone", "Error response: $errorBody")
+                Log.e("SSS", "Napaka: $responseBody")
+                (context as Activity).runOnUiThread {
+                    Toast.makeText(context, "Napaka: $responseBody", Toast.LENGTH_LONG).show()
+                }
             }
-        } catch (e: Exception) {
-            // Catch any exceptions and print stack trace
-            e.printStackTrace()
-            Log.d("milestone", "Request failed: ${e.message}")
+        } catch (e: IOException) {
+            Log.e("SSS", "Zahteva ni uspela: ${e.message}")
+            (context as Activity).runOnUiThread {
+                Toast.makeText(context, "Zahteva ni uspela: ${e.message}", Toast.LENGTH_LONG).show()
+            }
         }
-    }.start()
+    }
+}
+
+
+
+fun convertAudioToTextTest(
+    audioFile: File,
+    context: Context,
+    transcribedText: MutableState<String>
+) {
+    if (!audioFile.exists() || audioFile.length() == 0L) {
+        Log.e("SSS", "Napaka: Zvočna datoteka ne obstaja ali je prazna.")
+        return
+    }
+
+    CoroutineScope(Dispatchers.IO).launch {
+        delay(1000) // Simulacija mrežnega zakasnitve
+
+        val simulatedResponse = """{"text":"Testiranje dve pa ta je poročila."}"""
+
+        // Posodobi UI na glavnem niti
+        (context as Activity).runOnUiThread {
+            try {
+                val jsonResponse = JSONObject(simulatedResponse)
+                val transcription = jsonResponse.optString("text", "No transcription found")
+                transcribedText.value = transcription
+                Toast.makeText(context, "Transkripcija: $transcription", Toast.LENGTH_LONG).show()
+            } catch (e: JSONException) {
+                Log.e("SSS", "Napaka pri obdelavi JSON: ${e.message}")
+                Toast.makeText(context, "Napaka pri obdelavi JSON", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+}
+
+
+
+
+
+@Composable
+fun Modifier.drawVerticalScrollbar(scrollState: ScrollState): Modifier {
+    return this.drawWithContent {
+        drawContent()
+        val showScrollbar = scrollState.maxValue > 0  // Pokaži le, če je vsebina večja od zaslona
+        if (showScrollbar) {
+            val scrollbarHeight = size.height * (size.height / (size.height + scrollState.maxValue))
+            val scrollbarY = size.height * (scrollState.value.toFloat() / scrollState.maxValue)
+            drawRect(
+                color = Color.Gray.copy(alpha = 0.5f),
+                topLeft = Offset(size.width - 8.dp.toPx(), scrollbarY),
+                size = Size(4.dp.toPx(), scrollbarHeight)
+            )
+        }
+    }
+}
+
+@Composable
+fun ScrollIndicator() {
+    var isVisible by remember { mutableStateOf(true) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            isVisible = !isVisible
+            delay(1000)
+        }
+    }
+
+    AnimatedVisibility(
+        visible = isVisible,
+        enter = fadeIn(),
+        exit = fadeOut()
+    ) {
+        Icon(
+            imageVector = Icons.Default.KeyboardArrowDown,
+            contentDescription = "Scroll down",
+            tint = Color.Gray,
+            modifier = Modifier.size(32.dp)
+        )
+    }
 }
