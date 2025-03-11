@@ -632,7 +632,7 @@ fun convertAudioToText(audioFile: File, context: Context, transcribedText: Mutab
     val request = Request.Builder()
         .url("https://api.openai.com/v1/audio/transcriptions") // OpenAI Whisper API
         .post(requestBody)
-        .addHeader("Authorization", "secret-key")
+        .addHeader("Authorization", "")
         .addHeader("Accept", "application/json")
         .build()
 
