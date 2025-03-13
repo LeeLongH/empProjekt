@@ -6,7 +6,6 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.media.MediaPlayer
-import android.util.Base64
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -50,7 +49,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -73,7 +71,6 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -83,7 +80,6 @@ import androidx.compose.animation.*
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.rememberUpdatedState
 import okhttp3.RequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import org.json.JSONException
@@ -102,35 +98,13 @@ fun ReportScreen(viewModel: PorociloLovecViewModel = viewModel(), navController:
     var toText by remember { mutableStateOf("") }
     var durationText by remember { mutableStateOf("") }
 
+    var distanceInKm by remember { mutableStateOf("") }
+    var reportText by remember { mutableStateOf("") }
+
     val transcribedText = remember { mutableStateOf("") }
 
     RequestPermissions(context)
 
-    fun updateDuration() {
-        if (fromText.isNotBlank()) {
-            try {
-                val format = SimpleDateFormat("HH:mm", Locale.getDefault())
-                val start = format.parse(fromText)!!
-
-                val end = if (toText.isNotBlank()) {
-                    format.parse(toText)!!
-                } else if (isButtonActive) {
-                    Date() // If button is active, update dynamically every minute
-                } else {
-                    return // If `toText` is blank and button is inactive, don't update
-                }
-
-                val diff = end.time - start.time
-                val minutes = (diff / (1000 * 60)).toInt()
-                val hours = minutes / 60
-                val remainingMinutes = minutes % 60
-
-                durationText = "Trajanje: $hours ur $remainingMinutes min"
-            } catch (e: Exception) {
-                // Handle parsing error
-            }
-        }
-    }
 
     // Start/Stop Timer
     fun startStopTimer() {
@@ -149,23 +123,28 @@ fun ReportScreen(viewModel: PorociloLovecViewModel = viewModel(), navController:
             val minutes = elapsedMinutes % 60
             toText = SimpleDateFormat("HH:mm", Locale.getDefault()).format(endTime)
 
-            updateDuration()
+            updateDuration(fromText, toText, isButtonActive) { newDurationText ->
+                durationText = newDurationText
+            }
         }
     }
 
     // Update every minute while the timer is active OR if `toText` is blank
     LaunchedEffect(isButtonActive, toText) {
         while (isButtonActive || toText.isBlank()) {
-            updateDuration()
+            updateDuration(fromText, toText, isButtonActive) { newDurationText ->
+                durationText = newDurationText
+            }
             delay(60000) // Update every minute
         }
     }
 
     // Observe changes to 'fromText' and 'toText' to trigger updates
     LaunchedEffect(fromText, toText) {
-        updateDuration()
+        updateDuration(fromText, toText, isButtonActive) { newDurationText ->
+            durationText = newDurationText
+        }
     }
-
 
     // Klic funkcije za obvladovanje časa
     manageTimer(
@@ -180,7 +159,6 @@ fun ReportScreen(viewModel: PorociloLovecViewModel = viewModel(), navController:
         onDurationTextChanged = { newDurationText -> durationText = newDurationText },
         onElapsedMinutesChanged = { newElapsedMinutes -> elapsedMinutes = newElapsedMinutes }
     )
-
 
     val scrollState = rememberScrollState()
 
@@ -295,16 +273,28 @@ fun ReportScreen(viewModel: PorociloLovecViewModel = viewModel(), navController:
         // User selection dropdown
         SimpleDropdownMenu(viewModel)
 
-        // Distance input
         DistanceInput()
 
-        // Submit report button
-        SubmitButton(navController, distanceInKm = "")
+        SubmitButton(navController, distanceInKm = "", reportText = "")
 
-        // Navigation buttons
         NavigationButtons(navController)
 
         ScrollIndicator()
+    }
+}
+
+fun updateDuration(fromText: String, toText: String, isButtonActive: Boolean, onUpdate: (String) -> Unit) {
+    if (fromText.isNotBlank()) {
+        try {
+            val format = SimpleDateFormat("HH:mm", Locale.getDefault())
+            val start = format.parse(fromText)!!
+            val end = if (toText.isNotBlank()) format.parse(toText)!! else if (isButtonActive) Date() else return
+            val diff = end.time - start.time
+            val minutes = (diff / (1000 * 60)).toInt()
+            val hours = minutes / 60
+            val remainingMinutes = minutes % 60
+            onUpdate("Trajanje: $hours ur $remainingMinutes min")
+        } catch (_: Exception) { }
     }
 }
 
@@ -356,7 +346,7 @@ fun manageTimer(
 }
 
 @Composable
-fun SubmitButton(navController: NavController, distanceInKm: String) {
+fun SubmitButton(navController: NavController, distanceInKm: String, reportText: String) {
     val context = LocalContext.current // Get context to show Toast
     var showToast by remember { mutableStateOf(false) } // To trigger the toast when needed
 
@@ -369,9 +359,10 @@ fun SubmitButton(navController: NavController, distanceInKm: String) {
 
     Button(
         onClick = {
-            if (distanceInKm.isNotBlank()) {
+            if (distanceInKm.isNotBlank() && reportText.isNotBlank()) {
                 // If distance is not empty, navigate to "Report" screen
                 navController.navigate("Report")
+                //submitReport(distanceInKm, reportText)
             } else {
                 // Show the toast if distance is empty
                 showToast = true
@@ -407,8 +398,6 @@ fun ReportTextField(transcribedText: MutableState<String>) {
     )
 }
 
-
-// Recording Controls
 @Composable
 fun RecordingControls(transcribedText: MutableState<String>) {
     val context = LocalContext.current
@@ -488,8 +477,6 @@ fun RecordingControls(transcribedText: MutableState<String>) {
     }
 }
 
-
-// User Selection Dropdown
 @Composable
 fun SimpleDropdownMenu(viewModel: PorociloLovecViewModel) {
     val coroutineScope = rememberCoroutineScope()
@@ -542,11 +529,8 @@ fun SimpleDropdownMenu(viewModel: PorociloLovecViewModel) {
             }
         }
     }
-
-
 }
 
-// Distance Input
 @Composable
 fun DistanceInput() {
     var distanceInKm by remember { mutableStateOf("") }
@@ -566,9 +550,6 @@ fun DistanceInput() {
     )
 }
 
-
-
-// Navigation Buttons
 @Composable
 fun NavigationButtons(navController: NavController) {
     Button(
@@ -586,7 +567,6 @@ fun NavigationButtons(navController: NavController) {
     }
 }
 
-
 @Composable
 fun RequestPermissions(context: Context) {
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -602,7 +582,6 @@ fun RequestPermissions(context: Context) {
     }
 }
 
-
 fun playAudioFile(audioFile: File, context: Context) {
     val mediaPlayer = MediaPlayer()
     try {
@@ -614,7 +593,6 @@ fun playAudioFile(audioFile: File, context: Context) {
         Toast.makeText(context, "Error playing audio: ${e.message}", Toast.LENGTH_SHORT).show()
     }
 }
-
 
 fun convertAudioToText(audioFile: File, context: Context, transcribedText: MutableState<String>) {
     if (!audioFile.exists() || audioFile.length() == 0L) {
@@ -667,8 +645,6 @@ fun convertAudioToText(audioFile: File, context: Context, transcribedText: Mutab
     }
 }
 
-
-
 fun convertAudioToTextTest(
     audioFile: File,
     context: Context,
@@ -698,10 +674,6 @@ fun convertAudioToTextTest(
         }
     }
 }
-
-
-
-
 
 @Composable
 fun Modifier.drawVerticalScrollbar(scrollState: ScrollState): Modifier {

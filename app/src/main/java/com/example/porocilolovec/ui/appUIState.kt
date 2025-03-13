@@ -36,6 +36,7 @@ data class User(
 )
 data class Reports(
     @PrimaryKey(autoGenerate = true) val reportID: Int = 0,
+    var connectionID: Int,
     val userID: Int, // Now a foreign key
     val timestamp: Long,
     val text: String,

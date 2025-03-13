@@ -53,5 +53,7 @@ class MainActivity : ComponentActivity() {
         Log.d("LEON", "oncreate Email: $savedEmail")
         Log.d("LEON", "oncreate Password: $savedPassword")
         Log.d("LEON", "oncreate Profession: $savedProfession")
+
+
     }
 }

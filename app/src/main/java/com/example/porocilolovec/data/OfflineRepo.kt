@@ -6,6 +6,7 @@ import com.example.porocilolovec.ui.Connections
 //import androidx.preference.contains
 import com.example.porocilolovec.ui.Reports
 import com.example.porocilolovec.ui.User
+import kotlinx.coroutines.flow.Flow
 
 class OfflineRepo(
     private val userDao: UserDao,
@@ -36,9 +37,9 @@ class OfflineRepo(
     }
 
     // 📌 Pridobi poročila določenega uporabnika
-    suspend fun getReportsByUser(userId: Int): List<Reports> {
+    /*suspend fun getReportsByUser(userId: Int): List<Reports> {
         return reportDao.getReportsByUser(userId)
-    }
+    }*/
 
     // 📌 searchUsersBYProfessionScreen
     suspend fun searchUsersByProfession(profession: String): List<User> {
@@ -133,6 +134,46 @@ class OfflineRepo(
 
     suspend fun getManagerIdsForHunter(workerID: Int): List<Int> {
         return connectionsDao.getManagerIdsForHunter(workerID)
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+    suspend fun saveReport(
+        userID: Int,
+        connectionID: Int,
+        text: String,
+        distance: Float,
+        time: Int
+    ) {
+        val report = Reports(
+            userID = userID,
+            timestamp = System.currentTimeMillis(),
+            text = text,
+            distance = distance,
+            time = time,
+            reportID = TODO(),
+            connectionID = TODO()
+        )
+        reportDao.insertReport(report)
+    }
+
+    fun getReportsForUser(userID: Int): Flow<List<Reports>> {
+        return reportDao.getReportsByUser(userID)  // ✅ Ensure this returns Flow<List<Reports>>
+    }
+
+
+    suspend fun deleteReport(reportID: Int) {
+        reportDao.deleteReport(reportID)
     }
 
 

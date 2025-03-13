@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import com.example.porocilolovec.data.ConnectionsDao
+import kotlinx.coroutines.flow.collectLatest
 
 
 class PorociloLovecViewModel(private val offlineRepo: OfflineRepo, private val context: Context) : ViewModel() {
@@ -189,6 +190,54 @@ class PorociloLovecViewModel(private val offlineRepo: OfflineRepo, private val c
             Log.d("AAA", "Fetched users by IDs: ${result.size}")
         }
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    private val _reportSaved = MutableStateFlow(false)  // ✅ StateFlow instead of LiveData
+    val reportSaved: StateFlow<Boolean> = _reportSaved
+
+    fun submitReport(
+        userID: Int,
+        connectionID: Int,
+        text: String,
+        distance: Float,
+        time: Int
+    ) {
+        viewModelScope.launch {
+            try {
+                offlineRepo.saveReport(userID, connectionID, text, distance, time)
+                _reportSaved.value = true  // ✅ Update StateFlow
+                loadReports(userID) // Reload updated reports
+            } catch (e: Exception) {
+                _reportSaved.value = false
+            }
+        }
+    }
+
+    fun loadReports(userID: Int) {
+        viewModelScope.launch {
+            offlineRepo.getReportsForUser(userID)
+                .collectLatest { reportList ->
+                    _reports.value = reportList
+                }
+        }
+    }
+
 
 
 

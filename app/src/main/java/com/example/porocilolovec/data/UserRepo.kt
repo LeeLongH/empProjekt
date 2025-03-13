@@ -2,6 +2,7 @@ package com.example.porocilolovec.data
 
 import com.example.porocilolovec.ui.Reports
 import com.example.porocilolovec.ui.User
+import kotlinx.coroutines.flow.Flow
 
 
 class UserRepository(private val offlineRepo: OfflineRepo) {
@@ -19,7 +20,7 @@ class UserRepository(private val offlineRepo: OfflineRepo) {
         offlineRepo.addReport(userId, report)
     }
 
-    suspend fun getUserReports(userId: Int): List<Reports> {
-        return offlineRepo.getReportsByUser(userId)
+    suspend fun getUserReports(userId: Int): Flow<List<Reports>> {
+        return offlineRepo.getReportsForUser(userId)
     }
 }

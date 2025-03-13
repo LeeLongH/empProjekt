@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "StepCounter"
+rootProject.name = "porocilolovec"
 include(":app")
  
