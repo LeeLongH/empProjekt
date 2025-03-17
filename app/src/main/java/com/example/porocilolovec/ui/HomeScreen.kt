@@ -62,21 +62,30 @@ fun HomeScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: N
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Button(onClick = { navController.navigate(Hierarchy.Report.name) }) {
-            Text(text = stringResource(R.string.text_write_report))
+        var userProfession = viewModel.getCurrentUserProfession()
+        Log.e("USER_PROFESSION", "User profession: $userProfession")
+
+        if (userProfession == "Cuvaj") {
+            Button(onClick = { navController.navigate(Hierarchy.Report.name) }) {
+                Text(text = stringResource(R.string.text_write_report))
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(onClick = { navController.navigate(Hierarchy.History.name) }) {
+                Text(text = stringResource(R.string.title_history_report))
+            }
+        }else if (userProfession == "Upravljalec") {
+            Button(onClick = { navController.navigate(Hierarchy.ManagerReportView.name) }) {
+                Text(text = "Ogled poročil")
+            }
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(onClick = { navController.navigate(Hierarchy.History.name) }) {
-            Text(text = stringResource(R.string.title_history_report))
-        }
-
         Spacer(modifier = Modifier.height(32.dp))
+
 
         // Show "Work Requests" button if there are any work requests
         if (workRequestsString.isNotEmpty()) {
-            Button(onClick = { navController.navigate(Hierarchy.workRequests.name) }) {
+            Button(onClick = { navController.navigate(Hierarchy.WorkRequests.name) }) {
                 Text(text = "Work Requests")
             }
         }

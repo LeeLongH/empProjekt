@@ -79,6 +79,7 @@ import java.util.Locale
 import androidx.compose.animation.*
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.rememberUpdatedState
+import com.example.porocilolovec.data.OfflineRepo
 import okhttp3.RequestBody
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -97,6 +98,7 @@ fun ReportScreen(viewModel: PorociloLovecViewModel = viewModel(), navController:
     var fromText by remember { mutableStateOf("") }
     var toText by remember { mutableStateOf("") }
     var durationText by remember { mutableStateOf("") }
+
 
     var distanceInKm by remember { mutableStateOf("") }
     var reportText by remember { mutableStateOf("") }
@@ -182,7 +184,11 @@ fun ReportScreen(viewModel: PorociloLovecViewModel = viewModel(), navController:
         )
 
         // Text input for report description
-        ReportTextField(transcribedText)
+        ReportTextField(
+            reportText = reportText,
+            onReportTextChange = { reportText = it }, // Updates `reportText`
+            transcribedText = transcribedText // Keeps `transcribedText` reactive
+        )
 
         // Recording buttons
         RecordingControls(transcribedText)
@@ -273,9 +279,33 @@ fun ReportScreen(viewModel: PorociloLovecViewModel = viewModel(), navController:
         // User selection dropdown
         SimpleDropdownMenu(viewModel)
 
-        DistanceInput()
+        DistanceInput(distanceInKm, onDistanceChange = { distanceInKm = it }) // Pass state and updater
 
-        SubmitButton(navController, distanceInKm = "", reportText = "")
+        Button(
+            onClick = {
+                if (distanceInKm.isNotBlank() && reportText.isNotBlank()) {
+
+                    // Pretvori razdaljo v Float in uporabi elapsedMinutes kot čas
+                    val distance = distanceInKm.toFloatOrNull() ?: 0f
+
+                    var selectedManager = 1
+                    viewModel.submitReport(
+                        selectedManagerID = selectedManager,
+                        text = reportText,
+                        distance = distance,
+                        timeOnTerrain = elapsedMinutes
+                    )
+                    navController.navigate("History")
+                    Toast.makeText(context, "Poročilo uspešno oddano", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(context, "Izpolnite vsa polja", Toast.LENGTH_SHORT).show()
+                    Log.d("AAA", "$distanceInKm, $reportText")
+
+                }
+            }
+        ) {
+            Text("Oddaj poročilo") // Button label
+        }
 
         NavigationButtons(navController)
 
@@ -345,46 +375,22 @@ fun manageTimer(
     }
 }
 
-@Composable
-fun SubmitButton(navController: NavController, distanceInKm: String, reportText: String) {
-    val context = LocalContext.current // Get context to show Toast
-    var showToast by remember { mutableStateOf(false) } // To trigger the toast when needed
-
-    // Display the Toast when `showToast` is true
-    LaunchedEffect(showToast) {
-        if (showToast) {
-            Toast.makeText(context, "Izpolnite vsa polja", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    Button(
-        onClick = {
-            if (distanceInKm.isNotBlank() && reportText.isNotBlank()) {
-                // If distance is not empty, navigate to "Report" screen
-                navController.navigate("Report")
-                //submitReport(distanceInKm, reportText)
-            } else {
-                // Show the toast if distance is empty
-                showToast = true
-            }
-        }
-    ) {
-        Text("Oddaj poročilo") // Button label
-    }
-}
 
 @Composable
-fun ReportTextField(transcribedText: MutableState<String>) {
-    var reportText by remember { mutableStateOf("") }
-    val updatedText by rememberUpdatedState(transcribedText.value) // Vedno sledi zadnji vrednosti
+fun ReportTextField(
+    reportText: String,
+    onReportTextChange: (String) -> Unit,
+    transcribedText: MutableState<String>
+) {
+    val updatedText by rememberUpdatedState(transcribedText.value) // 🔥 Always follow the latest transcribed text
 
     LaunchedEffect(updatedText) {
-        reportText = updatedText
+        onReportTextChange(updatedText) // 🔥 Automatically update when transcribed text changes
     }
 
     OutlinedTextField(
         value = reportText,
-        onValueChange = { reportText = it },
+        onValueChange = { onReportTextChange(it) }, // 🔥 Pass updates to parent
         label = { Text(stringResource(R.string.text_write_report)) },
         modifier = Modifier
             .fillMaxWidth()
@@ -397,6 +403,7 @@ fun ReportTextField(transcribedText: MutableState<String>) {
         )
     )
 }
+
 
 @Composable
 fun RecordingControls(transcribedText: MutableState<String>) {
@@ -532,13 +539,12 @@ fun SimpleDropdownMenu(viewModel: PorociloLovecViewModel) {
 }
 
 @Composable
-fun DistanceInput() {
-    var distanceInKm by remember { mutableStateOf("") }
+fun DistanceInput(distanceInKm: String, onDistanceChange: (String) -> Unit) {
     OutlinedTextField(
         value = distanceInKm,
         onValueChange = {
             if (it.length <= 3) {
-                distanceInKm = it
+                onDistanceChange(it) // 🔥 Call the parent’s state update function
             }
         },
         label = { Text("Razdalja (km)") },
@@ -549,6 +555,7 @@ fun DistanceInput() {
         )
     )
 }
+
 
 @Composable
 fun NavigationButtons(navController: NavController) {

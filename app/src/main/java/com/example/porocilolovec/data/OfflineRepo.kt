@@ -7,6 +7,7 @@ import com.example.porocilolovec.ui.Connections
 import com.example.porocilolovec.ui.Reports
 import com.example.porocilolovec.ui.User
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 
 class OfflineRepo(
     private val userDao: UserDao,
@@ -147,28 +148,32 @@ class OfflineRepo(
 
 
 
+    suspend fun getConnection(managerId: Int, workerId: Int): Int? {
+        return connectionsDao.getConnection(managerId, workerId) // Returns connection ID or null
+    }
 
-    suspend fun saveReport(
+    suspend fun submitReport(
         userID: Int,
-        connectionID: Int,
+        connectionID: Int?, // Pass the connection ID (can be null)
         text: String,
         distance: Float,
-        time: Int
+        timeOnTerrain: Int
     ) {
         val report = Reports(
             userID = userID,
+            connectionID = connectionID, // Store the connection ID
             timestamp = System.currentTimeMillis(),
             text = text,
             distance = distance,
-            time = time,
-            reportID = TODO(),
-            connectionID = TODO()
+            timeOnTerrain = timeOnTerrain
         )
-        reportDao.insertReport(report)
+        reportDao.insertReport(report) // Insert the report into the database
     }
 
+
+
     fun getReportsForUser(userID: Int): Flow<List<Reports>> {
-        return reportDao.getReportsByUser(userID)  // ✅ Ensure this returns Flow<List<Reports>>
+        return reportDao.getReportsByUser(userID)
     }
 
 

@@ -20,6 +20,7 @@ import com.example.porocilolovec.ui.RegisterScreen
 import com.example.porocilolovec.ui.ReportScreen
 import com.example.porocilolovec.ui.SearchUsersByProfessionScreen
 import com.example.porocilolovec.ui.WorkRequestsScreen
+import com.example.porocilolovec.ui.ManagerReportScreen
 
 enum class Hierarchy {
     Register,
@@ -29,7 +30,8 @@ enum class Hierarchy {
     Search,
     Report,
     History,
-    workRequests,
+    WorkRequests,
+    ManagerReportView
 }
 
 @Composable
@@ -80,11 +82,11 @@ fun PorociloLovecApp(
         composable(route = Hierarchy.LoginRegister.name) {
             LoginRegisterLogoutScreen(viewModel = viewModel, navController = navController)
         }
-        composable(route = Hierarchy.workRequests.name) {
+        composable(route = Hierarchy.WorkRequests.name) {
             WorkRequestsScreen(viewModel = viewModel, navController = navController)
         }
-
-
-
+        composable(route = Hierarchy.ManagerReportView.name) {
+            ManagerReportScreen(viewModel = viewModel, navController = navController)
+        }
     }
 }

@@ -3,23 +3,19 @@ package com.example.porocilolovec.ui
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.porocilolovec.data.OfflineRepo
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
-import com.example.porocilolovec.data.ConnectionsDao
 import kotlinx.coroutines.flow.collectLatest
 
 
 class PorociloLovecViewModel(private val offlineRepo: OfflineRepo, private val context: Context) : ViewModel() {
 
-    private val _reports = MutableStateFlow<List<Reports>>(emptyList())
-    val reports: StateFlow<List<Reports>> = _reports
+
 
     private val _usersByProfession = MutableStateFlow<List<User>>(emptyList())
     val usersByProfession: StateFlow<List<User>> = _usersByProfession
@@ -191,6 +187,13 @@ class PorociloLovecViewModel(private val offlineRepo: OfflineRepo, private val c
         }
     }
 
+    fun getConnection(managerId: Int, workerId: Int): Int? {
+        var connectionID: Int? = null
+        viewModelScope.launch {
+            connectionID = offlineRepo.getConnection(managerId, workerId)
+        }
+        return connectionID
+    }
 
 
 
@@ -204,38 +207,57 @@ class PorociloLovecViewModel(private val offlineRepo: OfflineRepo, private val c
 
 
 
-
-
-
-
-    private val _reportSaved = MutableStateFlow(false)  // ✅ StateFlow instead of LiveData
+    private val _reportSaved = MutableStateFlow(false) // ✅ StateFlow instead of LiveData
     val reportSaved: StateFlow<Boolean> = _reportSaved
 
     fun submitReport(
-        userID: Int,
-        connectionID: Int,
+        selectedManagerID: Int, // 🔥 No need to pass full Connections object
         text: String,
         distance: Float,
-        time: Int
+        timeOnTerrain: Int
     ) {
+        val userID = getCurrentUserId() // Get the current user's ID
+
         viewModelScope.launch {
             try {
-                offlineRepo.saveReport(userID, connectionID, text, distance, time)
-                _reportSaved.value = true  // ✅ Update StateFlow
-                loadReports(userID) // Reload updated reports
+                // Get connection ID from DAO
+                val connectionID = offlineRepo.getConnection(selectedManagerID, userID)
+
+                // Call repository to insert the report
+                offlineRepo.submitReport(userID, connectionID, text, distance, timeOnTerrain)
+
+                _reportSaved.value = true // Report saved successfully
             } catch (e: Exception) {
                 _reportSaved.value = false
+                Log.e("submitReport", "Error saving report", e) // Log the error
             }
         }
     }
 
-    fun loadReports(userID: Int) {
+
+
+
+    fun getReports(): Flow<List<Reports>> {
+        return offlineRepo.getReportsForUser(getCurrentUserId()) // 🔥 Preprosto posreduj naprej
+    }
+
+    private val _reports = MutableStateFlow<List<Reports>>(emptyList()) // Mutable state flow to hold reports
+    val reports: StateFlow<List<Reports>> = _reports // Expose as StateFlow
+
+    // Call repository to fetch reports and emit them
+    fun fetchReportsForUser() {
         viewModelScope.launch {
-            offlineRepo.getReportsForUser(userID)
-                .collectLatest { reportList ->
-                    _reports.value = reportList
-                }
+            offlineRepo.getReportsForUser(getCurrentUserId()).collect { reportList ->
+                // Log the fetched reports
+                Log.d("PorociloLovecViewModel", "Fetched reports: ${reportList.size}")
+                _reports.value = reportList
+            }
         }
+    }
+
+    // Make sure to call this function in onCreate/onStart of your UI
+    init {
+        fetchReportsForUser()
     }
 
 

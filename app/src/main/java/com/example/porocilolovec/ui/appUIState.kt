@@ -1,7 +1,6 @@
 package com.example.porocilolovec.ui
 import androidx.room.Entity
 import androidx.room.ForeignKey
-import androidx.room.ForeignKey.Companion.CASCADE
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverter
@@ -35,13 +34,13 @@ data class User(
     indices = [Index("userID")] // Add an index on userID
 )
 data class Reports(
-    @PrimaryKey(autoGenerate = true) val reportID: Int = 0,
-    var connectionID: Int,
-    val userID: Int, // Now a foreign key
+    @PrimaryKey(autoGenerate = true) val reportID: Int = 0, // Auto-generated ID
+    val connectionID: Int?, // 🔥 Store only the foreign key (not the whole object)
+    val userID: Int,
     val timestamp: Long,
     val text: String,
     val distance: Float,
-    val time: Int
+    val timeOnTerrain: Int
 )
 
 @Entity(

@@ -8,6 +8,10 @@ import com.example.porocilolovec.ui.Connections
 
 @Dao
 interface ConnectionsDao {
+
+    @Query("SELECT userID FROM Connections WHERE userID = :managerId AND workerID = :workerId")
+    suspend fun getConnection(managerId: Int, workerId: Int): Int?
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertConnection(connection: Connections)
 
@@ -16,9 +20,6 @@ interface ConnectionsDao {
 
     @Query("SELECT * FROM Connections WHERE workerID = :workerId")
     suspend fun getConnectionsForWorker(workerId: Int): List<Connections>
-
-    @Query("SELECT * FROM Connections WHERE userID = :managerId AND workerID = :workerId")
-    suspend fun getConnection(managerId: Int, workerId: Int): Connections?
 
     @Query("DELETE FROM Connections WHERE userID = :managerId AND workerID = :workerId")
     suspend fun deleteConnection(managerId: Int, workerId: Int)
