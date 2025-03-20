@@ -49,7 +49,7 @@ fun HomeScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: N
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = stringResource(R.string.app_name),
+            text = stringResource(R.string.app_name) + " - Pozdravljeni ${viewModel.getCurrentUserId()}",
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold
         )

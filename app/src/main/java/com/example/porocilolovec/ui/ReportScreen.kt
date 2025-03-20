@@ -277,7 +277,7 @@ fun ReportScreen(viewModel: PorociloLovecViewModel = viewModel(), navController:
         }
 
         // User selection dropdown
-        SimpleDropdownMenu(viewModel)
+        DropdownManagers(viewModel)
 
         DistanceInput(distanceInKm, onDistanceChange = { distanceInKm = it }) // Pass state and updater
 
@@ -485,7 +485,7 @@ fun RecordingControls(transcribedText: MutableState<String>) {
 }
 
 @Composable
-fun SimpleDropdownMenu(viewModel: PorociloLovecViewModel) {
+fun DropdownManagers(viewModel: PorociloLovecViewModel) {
     val coroutineScope = rememberCoroutineScope()
     var expanded by remember { mutableStateOf(false) }
     var selectedUser by remember { mutableStateOf<String?>(null) }
@@ -495,11 +495,11 @@ fun SimpleDropdownMenu(viewModel: PorociloLovecViewModel) {
 
     // Fetch users only once when the current user id changes
     LaunchedEffect(viewModel.getCurrentUserId()) {
-        val workerIDs = viewModel.getManagerIdsForHunter(viewModel.getCurrentUserId())
-        if (workerIDs.isNotEmpty()) {
-            viewModel.getUsersByIds(workerIDs) // Fetch users asynchronously
+        val managerIDs = viewModel.getManagerIdsForHunter()
+        if (managerIDs.isNotEmpty()) {
+            viewModel.getUsersByIds(managerIDs) // Fetch users asynchronously
         }
-        Log.d("AAA", "${viewModel.getCurrentUserId()} -> Users fetched: ${userList.size}")
+        Log.d("AAA", "Users fetched: $managerIDs")
     }
 
     Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
@@ -665,7 +665,7 @@ fun convertAudioToTextTest(
     CoroutineScope(Dispatchers.IO).launch {
         delay(1000) // Simulacija mrežnega zakasnitve
 
-        val simulatedResponse = """{"text":"Testiranje dve pa ta je poročila."}"""
+        val simulatedResponse = """{"text":"zamenjaj s pravim API klicem, saj dela."}"""
 
         // Posodobi UI na glavnem niti
         (context as Activity).runOnUiThread {

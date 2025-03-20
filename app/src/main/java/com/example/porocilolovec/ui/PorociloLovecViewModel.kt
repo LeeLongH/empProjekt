@@ -30,6 +30,10 @@ class PorociloLovecViewModel(private val offlineRepo: OfflineRepo, private val c
         }
     }
 
+    suspend fun getUserByEmailAndPassword(email: String, password: String): User? {
+        return offlineRepo.getUserByEmailAndPassword(email, password)
+    }
+
     // Function to login user
     fun loginUser(email: String, password: String, context: Context, onSuccess: (User?) -> Unit) {
         viewModelScope.launch {
@@ -162,7 +166,10 @@ class PorociloLovecViewModel(private val offlineRepo: OfflineRepo, private val c
 
     suspend fun acceptWorkRequest(targetUserId: Int) {
         val currentUserId = getCurrentUserId()
-        offlineRepo.acceptWorkRequest(currentUserId, targetUserId)
+        if (getCurrentUserProfession() == "Upravljalec")
+            offlineRepo.acceptWorkRequest(currentUserId, targetUserId)
+        else if (getCurrentUserProfession() == "Cuvaj")
+            offlineRepo.acceptWorkRequest(targetUserId, currentUserId)
 
         // Remove the accepted user from the list
         val updatedUsers = _usersByIds.value.filterNot { it.userID == targetUserId }
@@ -170,8 +177,14 @@ class PorociloLovecViewModel(private val offlineRepo: OfflineRepo, private val c
 
         rejectWorkRequest(targetUserId.toString())
     }
-    suspend fun getManagerIdsForHunter(workerID: Int): List<Int> {
+    suspend fun getManagerIdsForHunter(): List<Int> {
+        val workerID = getCurrentUserId()
         return offlineRepo.getManagerIdsForHunter(workerID)
+    }
+
+    suspend fun getHunterIdsForManager(): List<Int> {
+        val managerID = getCurrentUserId()
+        return offlineRepo.getHunterIdsForManager(managerID)
     }
 
 
@@ -259,6 +272,9 @@ class PorociloLovecViewModel(private val offlineRepo: OfflineRepo, private val c
     init {
         fetchReportsForUser()
     }
+
+
+
 
 
 

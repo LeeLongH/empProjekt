@@ -49,7 +49,7 @@ data class Reports(
         ForeignKey(
             entity = User::class,
             parentColumns = ["userID"],
-            childColumns = ["userID"],
+            childColumns = ["managerID"],
             onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
@@ -60,13 +60,13 @@ data class Reports(
         )
     ],
     indices = [
-        Index("userID"),
+        Index("managerID"),
         Index("workerID")
     ]
 )
 data class Connections(
     @PrimaryKey(autoGenerate = true) val connectionID: Int = 0,
-    val userID: Int, // Foreign key referencing User.userID (the "manager")
+    val managerID: Int, // Foreign key referencing User.userID (the "manager")
     val workerID: Int // Foreign key referencing User.userID (the "worker")
 )
 

@@ -17,48 +17,38 @@ class OfflineRepo(
 
 ) {
 
-    // 📌 Dodaj uporabnika v bazo
     suspend fun addUser(user: User) {
         userDao.insertUser(user)
     }
 
-    // 📌 Pridobi uporabnika po ID-ju
     suspend fun getUserById(userId: Int): User? {
         return userDao.getUserById(userId)
     }
 
-    // Function to get users by their IDs
     suspend fun getUsersByIds(userIds: List<Int>): List<User> {
         return userDao.getUsersByIds(userIds)
     }
 
-    // 📌 Dodaj poročilo in ga shrani v tabelo reports
     suspend fun addReport(userId: Int, report: Reports) {
         reportDao.insertReport(report)
     }
 
-    // 📌 Pridobi poročila določenega uporabnika
-    /*suspend fun getReportsByUser(userId: Int): List<Reports> {
-        return reportDao.getReportsByUser(userId)
-    }*/
-
-    // 📌 searchUsersBYProfessionScreen
     suspend fun searchUsersByProfession(profession: String): List<User> {
         return userDao.searchUsersByProfession(profession)
     }
 
+    suspend fun getUserByEmailAndPassword(email: String, password: String): User? {
+        return userDao.getUserByEmailAndPassword(email, password)
+    }
 
-    // 📌 Prijava uporabnika
     suspend fun loginUser(email: String, password: String): User? {
         return userDao.getUserByEmailAndPassword(email, password)
     }
 
-    // 📌 Odjava uporabnika - briše shranjene podatke seje
     fun clearSession(context: Context) {
         val sharedPreferences = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
         sharedPreferences.edit().clear().apply()
     }
-
 
     suspend fun registerUser(fullName: String, email: String, password: String, profession: String) {
         // Create a User object with an empty list of workRequests
@@ -126,7 +116,7 @@ class OfflineRepo(
         if (existingConnection == null) {
             // If the connection doesn't exist, insert a new one
             Log.d("WORKD", "Inserting new connection for user $currentUserId and worker $targetUserId")
-            connectionsDao.insertConnection(Connections(userID = currentUserId, workerID = targetUserId))
+            connectionsDao.insertConnection(Connections(managerID = currentUserId, workerID = targetUserId))
         } else {
             // If the connection already exists, log a message (or handle it as needed)
             Log.d("WORKD", "Connection already exists for user $currentUserId and worker $targetUserId")
@@ -137,6 +127,9 @@ class OfflineRepo(
         return connectionsDao.getManagerIdsForHunter(workerID)
     }
 
+    suspend fun getHunterIdsForManager(managerID: Int): List<Int> {
+        return connectionsDao.getHunterIdsForManager(managerID)
+    }
 
 
 
@@ -148,8 +141,9 @@ class OfflineRepo(
 
 
 
-    suspend fun getConnection(managerId: Int, workerId: Int): Int? {
-        return connectionsDao.getConnection(managerId, workerId) // Returns connection ID or null
+
+    suspend fun getConnection(managerID: Int, workerID: Int): Int? {
+        return connectionsDao.getConnection(managerID, workerID) // Returns connection ID or null
     }
 
     suspend fun submitReport(

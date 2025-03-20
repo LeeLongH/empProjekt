@@ -41,25 +41,29 @@ fun PorociloLovecApp(
 ) {
 
     val context = LocalContext.current
-
-    // ✅ Use the correct SharedPreferences keys
     val sharedPreferences = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
     val savedEmail = sharedPreferences.getString("USER_EMAIL", null)
     val savedPassword = sharedPreferences.getString("USER_PASSWORD", null)
 
-    // ✅ Navigate directly to Home if user is already logged in
     LaunchedEffect(savedEmail, savedPassword) {
         if (!savedEmail.isNullOrEmpty() && !savedPassword.isNullOrEmpty()) {
-            Log.d("PorociloLovecApp", "Auto-login with saved credentials: Email = $savedEmail")
-            navController.navigate(Hierarchy.Home.name) {
-                popUpTo(0) // Clear the back stack
+            val user = viewModel.getUserByEmailAndPassword(savedEmail, savedPassword) // Check DB
+            if (user != null) {
+                Log.d("PorociloLovecApp", "User found: ${user.fullName}, navigating to Home")
+                navController.navigate(Hierarchy.Home.name) {
+                    popUpTo(0) // Clear back stack
+                }
+            } else {
+                // User does not exist -> clear SharedPreferences
+                sharedPreferences.edit().clear().apply()
+                navController.navigate(Hierarchy.Register.name)
             }
         }
     }
 
     NavHost(
         navController = navController,
-        startDestination = if (savedEmail != null && savedPassword != null) Hierarchy.Home.name else Hierarchy.Register.name
+        startDestination = if (!savedEmail.isNullOrEmpty() && !savedPassword.isNullOrEmpty()) Hierarchy.Home.name else Hierarchy.Register.name
     ) {
         composable(route = Hierarchy.Home.name) {
             HomeScreen(viewModel = viewModel, navController = navController)
