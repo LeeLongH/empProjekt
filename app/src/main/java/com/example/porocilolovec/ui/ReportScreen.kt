@@ -276,36 +276,37 @@ fun ReportScreen(viewModel: PorociloLovecViewModel = viewModel(), navController:
             Text(if (isButtonActive) "Stop" else "Štopaj")
         }
 
-        // User selection dropdown
-        DropdownManagers(viewModel)
 
         DistanceInput(distanceInKm, onDistanceChange = { distanceInKm = it }) // Pass state and updater
 
+        var selectedManagerID by remember { mutableStateOf<Int?>(null) } // 🔥 Shranjujemo ID
+
+        // Dropdown za izbiro upravljalca
+        DropdownManagers(viewModel) { selectedManagerID = it }
+
         Button(
             onClick = {
-                if (distanceInKm.isNotBlank() && reportText.isNotBlank()) {
-
-                    // Pretvori razdaljo v Float in uporabi elapsedMinutes kot čas
+                if (distanceInKm.isNotBlank() && reportText.isNotBlank() && selectedManagerID != null) {
                     val distance = distanceInKm.toFloatOrNull() ?: 0f
 
-                    var selectedManager = 1
                     viewModel.submitReport(
-                        selectedManagerID = selectedManager,
+                        selectedManagerID = selectedManagerID!!, // 🔥 Uporabimo ID namesto hardcoded 1
                         text = reportText,
                         distance = distance,
                         timeOnTerrain = elapsedMinutes
                     )
+
                     navController.navigate("History")
                     Toast.makeText(context, "Poročilo uspešno oddano", Toast.LENGTH_SHORT).show()
                 } else {
                     Toast.makeText(context, "Izpolnite vsa polja", Toast.LENGTH_SHORT).show()
-                    Log.d("AAA", "$distanceInKm, $reportText")
-
+                    Log.d("AAA", "Manjkajoči podatki: $distanceInKm, $reportText, selectedManagerID=$selectedManagerID")
                 }
             }
         ) {
-            Text("Oddaj poročilo") // Button label
+            Text("Oddaj poročilo")
         }
+
 
         NavigationButtons(navController)
 
@@ -484,20 +485,20 @@ fun RecordingControls(transcribedText: MutableState<String>) {
     }
 }
 
+
+
 @Composable
-fun DropdownManagers(viewModel: PorociloLovecViewModel) {
-    val coroutineScope = rememberCoroutineScope()
+fun DropdownManagers(viewModel: PorociloLovecViewModel, onUserSelected: (Int) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     var selectedUser by remember { mutableStateOf<String?>(null) }
+    var selectedUserId by remember { mutableStateOf<Int?>(null) } // 🔥 Dodamo ID
 
-    // Collect the list of users from the ViewModel (StateFlow)
     val userList by viewModel.usersByIds.collectAsState()
 
-    // Fetch users only once when the current user id changes
     LaunchedEffect(viewModel.getCurrentUserId()) {
         val managerIDs = viewModel.getManagerIdsForHunter()
         if (managerIDs.isNotEmpty()) {
-            viewModel.getUsersByIds(managerIDs) // Fetch users asynchronously
+            viewModel.getUsersByIds(managerIDs)
         }
         Log.d("AAA", "Users fetched: $managerIDs")
     }
@@ -527,7 +528,9 @@ fun DropdownManagers(viewModel: PorociloLovecViewModel) {
                                 .fillMaxWidth()
                                 .clickable {
                                     selectedUser = user.fullName
+                                    selectedUserId = user.userID // 🔥 Shrani tudi ID
                                     expanded = false
+                                    onUserSelected(user.userID) // 🔥 Posreduj ID v glavno funkcijo
                                 }
                                 .padding(8.dp)
                         )
@@ -537,6 +540,7 @@ fun DropdownManagers(viewModel: PorociloLovecViewModel) {
         }
     }
 }
+
 
 @Composable
 fun DistanceInput(distanceInKm: String, onDistanceChange: (String) -> Unit) {

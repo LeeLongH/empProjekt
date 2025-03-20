@@ -1,6 +1,7 @@
 package com.example.porocilolovec.ui
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -43,34 +44,54 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-
 @Composable
 fun ManagerReportScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: NavController) {
+    var selectedUserId by remember { mutableStateOf<Int?>(null) }
+    val reports by viewModel.reports.collectAsState(initial = emptyList())
+
+    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        DropdownMenuWorkers(viewModel) { userId ->
+            selectedUserId = userId
+            viewModel.loadReportsForUser(userId) // 🚀 Pravilna funkcija
+        }
 
 
-    DropdownMenuWorkers(viewModel)
+        Spacer(modifier = Modifier.height(16.dp))
+        Log.e("AAA", "Število poročil: ${reports.size}")
+        if (selectedUserId != null) {
+            LazyColumn {
+                items(reports) { report ->
+                    ReportsHunter(report)
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = { navController.navigate("Home") },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Nazaj na glavni zaslon")
+        }
+    }
 }
 
 @Composable
-fun DropdownMenuWorkers(viewModel: PorociloLovecViewModel) {
-    val coroutineScope = rememberCoroutineScope()
+fun DropdownMenuWorkers(viewModel: PorociloLovecViewModel, onUserSelected: (Int) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     var selectedUser by remember { mutableStateOf<String?>(null) }
-
-    // Collect the list of users from the ViewModel (StateFlow)
     val userList by viewModel.usersByIds.collectAsState()
 
-    // Fetch users only once when the current user id changes
     LaunchedEffect(viewModel.getCurrentUserId()) {
         val workerIDs = viewModel.getHunterIdsForManager()
         if (workerIDs.isNotEmpty()) {
-            viewModel.getUsersByIds(workerIDs) // Fetch users asynchronously
+            viewModel.getUsersByIds(workerIDs)
         }
-        Log.d("AAA", "${viewModel.getCurrentUserId()} -> Users fetched: ${userList.size}")
     }
 
     Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-        Text(text = "Izberite lovca za ogled porocil:", fontWeight = FontWeight.Bold)
+        Text(text = "Izberite lovca za ogled poročil:", fontWeight = FontWeight.Bold)
 
         Box(modifier = Modifier.fillMaxWidth().clickable { expanded = true }) {
             Text(text = selectedUser ?: "Klikni za izbiro", modifier = Modifier.padding(8.dp))
@@ -95,6 +116,7 @@ fun DropdownMenuWorkers(viewModel: PorociloLovecViewModel) {
                                 .clickable {
                                     selectedUser = user.fullName
                                     expanded = false
+                                    onUserSelected(user.userID) // Pridobi poročila
                                 }
                                 .padding(8.dp)
                         )
@@ -105,3 +127,33 @@ fun DropdownMenuWorkers(viewModel: PorociloLovecViewModel) {
     }
 }
 
+@Composable
+fun ReportsHunter(report: Reports) {
+    var expanded by remember { mutableStateOf(false) }
+    val context = LocalContext.current  // Dobi kontekst aplikacije
+
+    LaunchedEffect(Unit) {
+        Toast.makeText(context, "Poročilo uspešno oddano", Toast.LENGTH_SHORT).show()
+        Log.e("AAA", "Poročila uspešno prikazana")
+    }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+            .clickable { expanded = !expanded },
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            val formattedDate = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault()).format(Date(report.timestamp))
+            Text(text = "Datum: $formattedDate", fontWeight = FontWeight.Bold)
+
+            if (expanded) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(text = "Kilometri: ${report.distance}")
+                Text(text = "Opis: ${report.text}")
+                Text(text = "Čas na terenu: ${report.timeOnTerrain} min")
+            }
+        }
+    }
+}

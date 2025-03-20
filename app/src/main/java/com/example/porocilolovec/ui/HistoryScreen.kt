@@ -16,6 +16,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,14 +37,15 @@ import java.util.Locale
 
 @Composable
 fun HistoryScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: NavController) {
-    // Collect the list of reports as State inside Composable
-    val reports = viewModel.reports.collectAsState(initial = emptyList()).value
+    // Zdaj uporabljamo ownReports namesto reports
+    val reports = viewModel.ownReports.collectAsState(initial = emptyList()).value
 
-    // Log the reports to check if data is being received correctly
-    Log.d("HistoryScreen", "Reports list size: ${reports.size}")
-    reports.forEach {
-        Log.d("HistoryScreen", "Report: ${it.reportID}, Timestamp: ${it.timestamp}")
+    // Poskrbimo, da se podatki naložijo
+    LaunchedEffect(Unit) {
+        viewModel.loadOwnReports()
     }
+
+    Log.d("HistoryScreen", "Reports list size: ${reports.size}")
 
     Column(
         modifier = Modifier
@@ -59,7 +61,6 @@ fun HistoryScreen(viewModel: PorociloLovecViewModel = viewModel(), navController
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Display each report as a Card using LazyColumn
         LazyColumn {
             items(reports) { report ->
                 ReportItem(report)
@@ -76,6 +77,7 @@ fun HistoryScreen(viewModel: PorociloLovecViewModel = viewModel(), navController
         }
     }
 }
+
 
 @Composable
 fun ReportItem(report: Reports) {

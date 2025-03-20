@@ -21,6 +21,6 @@ class UserRepository(private val offlineRepo: OfflineRepo) {
     }
 
     suspend fun getUserReports(userId: Int): Flow<List<Reports>> {
-        return offlineRepo.getReportsForUser(userId)
+        return offlineRepo.getReportsForUser(userId, userId)
     }
 }

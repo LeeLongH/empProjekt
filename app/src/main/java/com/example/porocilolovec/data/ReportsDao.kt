@@ -13,8 +13,13 @@ interface ReportDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertReport(report: Reports)
 
+    @Query("SELECT * FROM Reports WHERE userID = :userId AND managerID = :managerID")
+    fun getReportsByUser(userId: Int, managerID: Int): Flow<List<Reports>>  // ✅ Must return Flow<List<Reports>>
+
     @Query("SELECT * FROM Reports WHERE userID = :userId")
-    fun getReportsByUser(userId: Int): Flow<List<Reports>>  // ✅ Must return Flow<List<Reports>>
+    fun getReportsHistory(userId: Int): Flow<List<Reports>>  // ✅ Must return Flow<List<Reports>>
+
+
 
     @Query("DELETE FROM Reports WHERE reportID = :reportId")
     suspend fun deleteReport(reportId: Int)

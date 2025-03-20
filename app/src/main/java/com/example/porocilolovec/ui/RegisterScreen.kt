@@ -105,6 +105,6 @@ fun RegisterScreen(viewModel: PorociloLovecViewModel = viewModel(), navControlle
             Text("Clear User Data")
         }
     }
-    //context.deleteDatabase("DB5") // Replace with your actual database name
+    //context.deleteDatabase("DB4")
 
 }

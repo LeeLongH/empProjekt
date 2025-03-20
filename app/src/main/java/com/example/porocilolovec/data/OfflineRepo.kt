@@ -115,11 +115,11 @@ class OfflineRepo(
 
         if (existingConnection == null) {
             // If the connection doesn't exist, insert a new one
-            Log.d("WORKD", "Inserting new connection for user $currentUserId and worker $targetUserId")
+            Log.d("BBB", "Inserting new connection for user $currentUserId and worker $targetUserId")
             connectionsDao.insertConnection(Connections(managerID = currentUserId, workerID = targetUserId))
         } else {
             // If the connection already exists, log a message (or handle it as needed)
-            Log.d("WORKD", "Connection already exists for user $currentUserId and worker $targetUserId")
+            Log.d("BBB", "Connection already exists for user $currentUserId and worker $targetUserId")
         }
     }
 
@@ -148,14 +148,14 @@ class OfflineRepo(
 
     suspend fun submitReport(
         userID: Int,
-        connectionID: Int?, // Pass the connection ID (can be null)
+        selectedManagerID: Int, // Pass the connection ID (can be null)
         text: String,
         distance: Float,
         timeOnTerrain: Int
     ) {
         val report = Reports(
             userID = userID,
-            connectionID = connectionID, // Store the connection ID
+            managerID = selectedManagerID, // Store the connection ID
             timestamp = System.currentTimeMillis(),
             text = text,
             distance = distance,
@@ -166,10 +166,12 @@ class OfflineRepo(
 
 
 
-    fun getReportsForUser(userID: Int): Flow<List<Reports>> {
-        return reportDao.getReportsByUser(userID)
+    fun getReportsForUser(userID: Int, managerID: Int): Flow<List<Reports>> {
+        return reportDao.getReportsByUser(userID, managerID)
     }
-
+    fun getReportsHistory(userID: Int): Flow<List<Reports>> {
+        return reportDao.getReportsHistory(userID)
+    }
 
     suspend fun deleteReport(reportID: Int) {
         reportDao.deleteReport(reportID)

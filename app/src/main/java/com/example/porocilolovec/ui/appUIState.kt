@@ -35,7 +35,7 @@ data class User(
 )
 data class Reports(
     @PrimaryKey(autoGenerate = true) val reportID: Int = 0, // Auto-generated ID
-    val connectionID: Int?, // 🔥 Store only the foreign key (not the whole object)
+    val managerID: Int, // 🔥 Store only the foreign key (not the whole object)
     val userID: Int,
     val timestamp: Long,
     val text: String,

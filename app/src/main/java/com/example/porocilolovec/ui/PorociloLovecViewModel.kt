@@ -233,11 +233,9 @@ class PorociloLovecViewModel(private val offlineRepo: OfflineRepo, private val c
 
         viewModelScope.launch {
             try {
-                // Get connection ID from DAO
-                val connectionID = offlineRepo.getConnection(selectedManagerID, userID)
 
                 // Call repository to insert the report
-                offlineRepo.submitReport(userID, connectionID, text, distance, timeOnTerrain)
+                offlineRepo.submitReport(userID, selectedManagerID, text, distance, timeOnTerrain)
 
                 _reportSaved.value = true // Report saved successfully
             } catch (e: Exception) {
@@ -250,28 +248,39 @@ class PorociloLovecViewModel(private val offlineRepo: OfflineRepo, private val c
 
 
 
-    fun getReports(): Flow<List<Reports>> {
+    /*fun getReports(): Flow<List<Reports>> {
         return offlineRepo.getReportsForUser(getCurrentUserId()) // 🔥 Preprosto posreduj naprej
-    }
+    }*/
 
     private val _reports = MutableStateFlow<List<Reports>>(emptyList()) // Mutable state flow to hold reports
     val reports: StateFlow<List<Reports>> = _reports // Expose as StateFlow
 
-    // Call repository to fetch reports and emit them
-    fun fetchReportsForUser() {
+
+    fun getReportsForUser(userID: Int): Flow<List<Reports>> {
+        return offlineRepo.getReportsForUser(userID, getCurrentUserId())
+    }
+    fun loadReportsForUser(userID: Int) {
         viewModelScope.launch {
-            offlineRepo.getReportsForUser(getCurrentUserId()).collect { reportList ->
-                // Log the fetched reports
-                Log.d("PorociloLovecViewModel", "Fetched reports: ${reportList.size}")
+            offlineRepo.getReportsForUser(userID, getCurrentUserId()).collect { reportList ->
+                Log.e("BBB", "Pridobljena poročila: ${reportList.size} za userID: $userID")
                 _reports.value = reportList
             }
         }
     }
 
-    // Make sure to call this function in onCreate/onStart of your UI
-    init {
-        fetchReportsForUser()
+
+    private val _ownReports = MutableStateFlow<List<Reports>>(emptyList())
+    val ownReports: StateFlow<List<Reports>> = _ownReports
+
+    fun loadOwnReports() {
+        viewModelScope.launch {
+            offlineRepo.getReportsHistory(getCurrentUserId()).collect { reportList ->
+                Log.e("AAA", "Pridobljena lastna poročila: ${reportList.size}")
+                _ownReports.value = reportList
+            }
+        }
     }
+
 
 
 
