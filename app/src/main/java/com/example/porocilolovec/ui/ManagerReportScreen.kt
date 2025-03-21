@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -43,11 +44,15 @@ import com.example.porocilolovec.R
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+
 
 @Composable
 fun ManagerReportScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: NavController) {
     var selectedUserId by remember { mutableStateOf<Int?>(null) }
     val reports by viewModel.reports.collectAsState(initial = emptyList())
+
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         DropdownMenuWorkers(viewModel) { userId ->
@@ -61,10 +66,11 @@ fun ManagerReportScreen(viewModel: PorociloLovecViewModel = viewModel(), navCont
         if (selectedUserId != null) {
             LazyColumn {
                 items(reports) { report ->
-                    ReportsHunter(report)
+                    ReportsHunter(report, viewModel) // Dodano viewModel
                 }
             }
         }
+
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -127,15 +133,14 @@ fun DropdownMenuWorkers(viewModel: PorociloLovecViewModel, onUserSelected: (Int)
     }
 }
 
-@Composable
-fun ReportsHunter(report: Reports) {
-    var expanded by remember { mutableStateOf(false) }
-    val context = LocalContext.current  // Dobi kontekst aplikacije
 
-    LaunchedEffect(Unit) {
-        Toast.makeText(context, "Poročilo uspešno oddano", Toast.LENGTH_SHORT).show()
-        Log.e("AAA", "Poročila uspešno prikazana")
-    }
+
+@Composable
+fun ReportsHunter(report: Reports, viewModel: PorociloLovecViewModel) {
+    var expanded by remember { mutableStateOf(false) }
+    var newMessage by remember { mutableStateOf("") }
+    var showInputField by remember { mutableStateOf(false) } // Kontrola prikaza vnosa
+    val context = LocalContext.current
 
     Card(
         modifier = Modifier
@@ -153,7 +158,72 @@ fun ReportsHunter(report: Reports) {
                 Text(text = "Kilometri: ${report.distance}")
                 Text(text = "Opis: ${report.text}")
                 Text(text = "Čas na terenu: ${report.timeOnTerrain} min")
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // **Prikaz pogovora**
+                val messages = report.getResponseList()
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 50.dp, max = 200.dp)
+                        .verticalScroll(rememberScrollState())
+                        .background(Color(0xFFE0E0E0), shape = RoundedCornerShape(8.dp))
+                        .padding(8.dp)
+                ) {
+                    messages.forEach { message ->
+                        Text(
+                            text = "${message.sender}: ${message.message}",
+                            fontSize = 14.sp,
+                            fontWeight = if (message.sender == "Manager") FontWeight.Bold else FontWeight.Normal,
+                            modifier = Modifier.padding(4.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // **Gumb za dodajanje komentarja**
+                Button(
+                    onClick = { showInputField = !showInputField },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(if (showInputField) "Skrij vnos" else "Dodaj poročilu komentar")
+                }
+
+                // **Vnosno polje za komentar**
+                if (showInputField) {
+                    OutlinedTextField(
+                        value = newMessage,
+                        onValueChange = { newMessage = it }, // Zdaj bo delovalo
+                        label = { Text("Vnesi komentar") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Button(
+                        onClick = {
+                            if (newMessage.isNotBlank()) {
+                                val newChatMessage = ChatMessage(
+                                    sender = "Manager", // Lahko preveriš vlogo uporabnika
+                                    message = newMessage,
+                                    timestamp = System.currentTimeMillis()
+                                )
+
+                                viewModel.addResponseToReport(report, newChatMessage)
+                                newMessage = "" // Po oddaji sporočila počisti vnos
+                                showInputField = false // Skrij vnosno polje
+                            }
+                        },
+                        modifier = Modifier.align(Alignment.End)
+                    ) {
+                        Text("Pošlji")
+                    }
+                }
             }
         }
     }
 }
+

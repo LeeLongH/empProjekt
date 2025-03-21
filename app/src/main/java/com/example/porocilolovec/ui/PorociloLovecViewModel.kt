@@ -283,6 +283,14 @@ class PorociloLovecViewModel(private val offlineRepo: OfflineRepo, private val c
 
 
 
+    fun addResponseToReport(report: Reports, message: ChatMessage) {
+        viewModelScope.launch {
+            val updatedReport = report.addResponseMessage(message)
+            offlineRepo.updateReport(updatedReport) // Posodobi v Room DB
+        }
+    }
+
+
 
 
 

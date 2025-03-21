@@ -40,7 +40,24 @@ data class Reports(
     val timestamp: Long,
     val text: String,
     val distance: Float,
-    val timeOnTerrain: Int
+    val timeOnTerrain: Int,
+    val response: String = "[]" // Shranimo kot JSON array string
+){
+    fun getResponseList(): List<ChatMessage> {
+        return Gson().fromJson(response, object : TypeToken<List<ChatMessage>>() {}.type) ?: emptyList()
+    }
+
+    fun addResponseMessage(message: ChatMessage): Reports {
+        val messages = getResponseList().toMutableList()
+        messages.add(message)
+        return copy(response = Gson().toJson(messages))
+    }
+}
+
+data class ChatMessage(
+    val sender: String, // "Manager" ali "Guard"
+    val message: String,
+    val timestamp: Long
 )
 
 @Entity(

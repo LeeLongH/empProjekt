@@ -159,7 +159,8 @@ class OfflineRepo(
             timestamp = System.currentTimeMillis(),
             text = text,
             distance = distance,
-            timeOnTerrain = timeOnTerrain
+            timeOnTerrain = timeOnTerrain,
+            response = ""
         )
         reportDao.insertReport(report) // Insert the report into the database
     }
@@ -175,6 +176,10 @@ class OfflineRepo(
 
     suspend fun deleteReport(reportID: Int) {
         reportDao.deleteReport(reportID)
+    }
+
+    suspend fun updateReport(report: Reports) {
+        reportDao.update(report)
     }
 
 

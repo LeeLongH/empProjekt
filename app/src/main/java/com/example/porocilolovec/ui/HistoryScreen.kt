@@ -34,6 +34,9 @@ import com.example.porocilolovec.R
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+
 
 @Composable
 fun HistoryScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: NavController) {
@@ -63,7 +66,7 @@ fun HistoryScreen(viewModel: PorociloLovecViewModel = viewModel(), navController
 
         LazyColumn {
             items(reports) { report ->
-                ReportItem(report)
+                ReportItem(report, viewModel)
             }
         }
 
@@ -80,19 +83,19 @@ fun HistoryScreen(viewModel: PorociloLovecViewModel = viewModel(), navController
 
 
 @Composable
-fun ReportItem(report: Reports) {
-    // Track the expanded state to show/hide details
+fun ReportItem(report: Reports, viewModel: PorociloLovecViewModel) {
     var expanded by remember { mutableStateOf(false) }
+    var newMessage by remember { mutableStateOf("") }
+    var showInputField by remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
-            .clickable { expanded = !expanded }, // Toggle the expanded state on click
+            .clickable { expanded = !expanded },
         shape = RoundedCornerShape(8.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // Format the timestamp into a readable date string
             val formattedDate = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault()).format(Date(report.timestamp))
             Text(text = "Datum: $formattedDate", fontWeight = FontWeight.Bold)
 
@@ -101,6 +104,66 @@ fun ReportItem(report: Reports) {
                 Text(text = "Kilometri: ${report.distance}")
                 Text(text = "Opis: ${report.text}")
                 Text(text = "Čas na terenu: ${report.timeOnTerrain} min")
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // **Prikaz pogovora**
+                val messages = report.getResponseList()
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp)
+                ) {
+                    messages.forEach { message ->
+                        Text(
+                            text = "${message.sender}: ${message.message}",
+                            fontSize = 14.sp,
+                            fontWeight = if (message.sender == "Manager") FontWeight.Bold else FontWeight.Normal,
+                            modifier = Modifier.padding(4.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // **Gumb za dodajanje komentarja**
+                Button(
+                    onClick = { showInputField = !showInputField },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(if (showInputField) "Skrij vnos" else "Dodaj komentar")
+                }
+
+                // **Vnosno polje za komentar**
+                if (showInputField) {
+                    OutlinedTextField(
+                        value = newMessage,
+                        onValueChange = { newMessage = it },
+                        label = { Text("Vnesi komentar") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Button(
+                        onClick = {
+                            if (newMessage.isNotBlank()) {
+                                val newChatMessage = ChatMessage(
+                                    sender = "Hunter", // Čuvar doda sporočilo
+                                    message = newMessage,
+                                    timestamp = System.currentTimeMillis()
+                                )
+
+                                viewModel.addResponseToReport(report, newChatMessage)
+                                newMessage = "" // Po oddaji sporočila počisti vnos
+                                showInputField = false // Skrij vnosno polje
+                            }
+                        },
+                        modifier = Modifier.align(Alignment.End)
+                    ) {
+                        Text("Pošlji")
+                    }
+                }
             }
         }
     }

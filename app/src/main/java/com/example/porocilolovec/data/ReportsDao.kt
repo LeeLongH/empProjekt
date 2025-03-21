@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import com.example.porocilolovec.ui.Reports
 import kotlinx.coroutines.flow.Flow
 
@@ -23,5 +24,8 @@ interface ReportDao {
 
     @Query("DELETE FROM Reports WHERE reportID = :reportId")
     suspend fun deleteReport(reportId: Int)
+
+    @Update
+    suspend fun update(report: Reports)
 
 }
