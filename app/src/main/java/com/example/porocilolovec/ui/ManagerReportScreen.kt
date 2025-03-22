@@ -66,7 +66,7 @@ fun ManagerReportScreen(viewModel: PorociloLovecViewModel = viewModel(), navCont
         if (selectedUserId != null) {
             LazyColumn {
                 items(reports) { report ->
-                    ReportsHunter(report, viewModel) // Dodano viewModel
+                    ReportsHunter(report, viewModel, selectedUserId) // Dodano viewModel
                 }
             }
         }
@@ -88,6 +88,7 @@ fun DropdownMenuWorkers(viewModel: PorociloLovecViewModel, onUserSelected: (Int)
     var expanded by remember { mutableStateOf(false) }
     var selectedUser by remember { mutableStateOf<String?>(null) }
     val userList by viewModel.usersByIds.collectAsState()
+
 
     LaunchedEffect(viewModel.getCurrentUserId()) {
         val workerIDs = viewModel.getHunterIdsForManager()
@@ -136,11 +137,21 @@ fun DropdownMenuWorkers(viewModel: PorociloLovecViewModel, onUserSelected: (Int)
 
 
 @Composable
-fun ReportsHunter(report: Reports, viewModel: PorociloLovecViewModel) {
+fun ReportsHunter(report: Reports, viewModel: PorociloLovecViewModel, selectedUserId: Int?) {
     var expanded by remember { mutableStateOf(false) }
     var newMessage by remember { mutableStateOf("") }
-    var showInputField by remember { mutableStateOf(false) } // Kontrola prikaza vnosa
+    var showInputField by remember { mutableStateOf(false) }
+    var selectedUserName by remember { mutableStateOf<String?>(null) }
+
     val context = LocalContext.current
+
+    // Fetch the user's name if selectedUserId is not null
+    LaunchedEffect(selectedUserId) {
+        if (selectedUserId != null) {
+            // Make sure to call a suspend function to fetch the user name
+            selectedUserName = viewModel.getUserNameById(selectedUserId).toString()
+        }
+    }
 
     Card(
         modifier = Modifier
@@ -172,10 +183,15 @@ fun ReportsHunter(report: Reports, viewModel: PorociloLovecViewModel) {
                         .padding(8.dp)
                 ) {
                     messages.forEach { message ->
+                        val senderName = when (message.sender) {
+                            "Manager" -> "VI"
+                            "Hunter" -> selectedUserName ?: "Čuvaj" // Use the selected user name
+                            else -> "Neznano"
+                        }
                         Text(
-                            text = "${message.sender}: ${message.message}",
+                            text = "$senderName: ${message.message}",
                             fontSize = 14.sp,
-                            fontWeight = if (message.sender == "Manager") FontWeight.Bold else FontWeight.Normal,
+                            fontWeight = if (message.sender == "Hunter") FontWeight.Bold else FontWeight.Normal,
                             modifier = Modifier.padding(4.dp)
                         )
                     }
@@ -195,7 +211,7 @@ fun ReportsHunter(report: Reports, viewModel: PorociloLovecViewModel) {
                 if (showInputField) {
                     OutlinedTextField(
                         value = newMessage,
-                        onValueChange = { newMessage = it }, // Zdaj bo delovalo
+                        onValueChange = { newMessage = it },
                         label = { Text("Vnesi komentar") },
                         modifier = Modifier.fillMaxWidth()
                     )

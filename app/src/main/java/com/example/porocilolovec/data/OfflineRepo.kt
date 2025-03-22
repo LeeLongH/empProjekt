@@ -182,5 +182,10 @@ class OfflineRepo(
         reportDao.update(report)
     }
 
+    // Retrieve the current user ID from SharedPreferences
+    suspend fun getUserNameById(userID: Int): String {
+        return userDao.getUserNameById(userID).toString()
+    }
+
 
 }

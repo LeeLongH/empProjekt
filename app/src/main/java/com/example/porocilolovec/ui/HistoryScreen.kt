@@ -87,6 +87,11 @@ fun ReportItem(report: Reports, viewModel: PorociloLovecViewModel) {
     var expanded by remember { mutableStateOf(false) }
     var newMessage by remember { mutableStateOf("") }
     var showInputField by remember { mutableStateOf(false) }
+    var selectedUserName by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(report.managerID) {
+        selectedUserName = viewModel.getUserNameById(report.managerID)
+    }
 
     Card(
         modifier = Modifier
@@ -115,8 +120,13 @@ fun ReportItem(report: Reports, viewModel: PorociloLovecViewModel) {
                         .padding(8.dp)
                 ) {
                     messages.forEach { message ->
+                        val senderName = when (message.sender) {
+                            "Hunter" -> "VI"
+                            "Manager" -> selectedUserName ?: "Upravljalec" // Use the selected user name
+                            else -> "Neznano"
+                        }
                         Text(
-                            text = "${message.sender}: ${message.message}",
+                            text = "$senderName: ${message.message}",
                             fontSize = 14.sp,
                             fontWeight = if (message.sender == "Manager") FontWeight.Bold else FontWeight.Normal,
                             modifier = Modifier.padding(4.dp)

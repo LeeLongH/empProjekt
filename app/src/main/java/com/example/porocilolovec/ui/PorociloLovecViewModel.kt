@@ -290,6 +290,10 @@ class PorociloLovecViewModel(private val offlineRepo: OfflineRepo, private val c
         }
     }
 
+    // Retrieve the current user ID from SharedPreferences
+    suspend fun getUserNameById(userID: Int): String {
+        return offlineRepo.getUserNameById(userID)
+    }
 
 
 

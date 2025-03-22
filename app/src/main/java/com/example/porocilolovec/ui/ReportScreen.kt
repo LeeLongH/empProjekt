@@ -91,22 +91,17 @@ import org.json.JSONObject
 fun ReportScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: NavController) {
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
-
     var isButtonActive by remember { mutableStateOf(false) }
     var startTime by remember { mutableStateOf<Date?>(null) }
     var elapsedMinutes by remember { mutableIntStateOf(0) }
     var fromText by remember { mutableStateOf("") }
     var toText by remember { mutableStateOf("") }
-    var durationText by remember { mutableStateOf("") }
-
-
+    var durationText by remember { mutableStateOf("0 ur 0 min") }
     var distanceInKm by remember { mutableStateOf("") }
     var reportText by remember { mutableStateOf("") }
-
     val transcribedText = remember { mutableStateOf("") }
 
     RequestPermissions(context)
-
 
     // Start/Stop Timer
     fun startStopTimer() {
@@ -116,7 +111,7 @@ fun ReportScreen(viewModel: PorociloLovecViewModel = viewModel(), navController:
                 startTime = Date()
                 fromText = SimpleDateFormat("HH:mm", Locale.getDefault()).format(startTime!!)
             }
-            durationText = "Trajanje: 0 ur 0 min"
+            durationText = "0 ur 0 min"
         } else {
             isButtonActive = false
             val endTime = Date()
@@ -131,8 +126,7 @@ fun ReportScreen(viewModel: PorociloLovecViewModel = viewModel(), navController:
         }
     }
 
-    // Update every minute while the timer is active OR if `toText` is blank
-    LaunchedEffect(isButtonActive, toText) {
+    LaunchedEffect(isButtonActive, toText, fromText) {
         while (isButtonActive || toText.isBlank()) {
             updateDuration(fromText, toText, isButtonActive) { newDurationText ->
                 durationText = newDurationText
@@ -145,10 +139,11 @@ fun ReportScreen(viewModel: PorociloLovecViewModel = viewModel(), navController:
     LaunchedEffect(fromText, toText) {
         updateDuration(fromText, toText, isButtonActive) { newDurationText ->
             durationText = newDurationText
+            Log.e("CCC", "LaunchedEffect updated durationText: $durationText")
         }
     }
 
-    // Klic funkcije za obvladovanje časa
+    // Timer management function
     manageTimer(
         isButtonActive = isButtonActive,
         startTime = startTime,
@@ -220,31 +215,12 @@ fun ReportScreen(viewModel: PorociloLovecViewModel = viewModel(), navController:
                 value = fromText,
                 onValueChange = {
                     fromText = it
-
-                    // Preverimo, če je vnos v formatu HH:mm
-                    if (fromText.isNotBlank() && fromText.matches(Regex("^\\d{2}:\\d{2}$"))) {
-                        // Ko se "Od ura" ročno spremeni, se posodobi trajanje
-                        if (fromText.isNotBlank() && toText.isNotBlank()) {
-                            try {
-                                val formatter = SimpleDateFormat("HH:mm", Locale.getDefault())
-                                val startDate = formatter.parse(fromText)
-                                val endDate = formatter.parse(toText)
-                                if (startDate != null && endDate != null) {
-                                    val durationInMillis = endDate.time - startDate.time
-                                    val durationInMinutes = durationInMillis / (1000 * 60)
-                                    val hours = durationInMinutes / 60
-                                    val minutes = durationInMinutes % 60
-                                    durationText = "Trajanje: $hours ur $minutes min"
-                                }
-                            } catch (e: Exception) {
-                                // V primeru napake pri analizi časa preprosto ignoriraj spremembe
-                                println("Napaka pri analizi časa: ${e.message}")
-                            }
-                        }
+                    updateDuration(fromText, toText, isButtonActive) { newDurationText ->
+                        durationText = newDurationText  // ⬅️ UI bo zdaj osvežen!
                     }
                 },
                 label = { Text("Od ura") },
-                modifier = Modifier.weight(0.6f),  // Nastavi širino
+                modifier = Modifier.weight(0.6f),
                 enabled = !isButtonActive,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
@@ -252,14 +228,19 @@ fun ReportScreen(viewModel: PorociloLovecViewModel = viewModel(), navController:
             // "Do ura" field
             TextField(
                 value = toText,
-                onValueChange = { toText = it },
+                onValueChange = {
+                    toText = it
+                    updateDuration(fromText, toText, isButtonActive) { newDurationText ->
+                        durationText = newDurationText  // ⬅️ UI bo zdaj osvežen!
+                    }
+                },
                 label = { Text("Do ura") },
-                modifier = Modifier.weight(0.6f), // Nastavi širino
+                modifier = Modifier.weight(0.6f),
                 enabled = !isButtonActive,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
 
-            // "Trajanje" field
+            // Prikaz trajanja
             TextField(
                 value = durationText,
                 onValueChange = {},
@@ -267,6 +248,7 @@ fun ReportScreen(viewModel: PorociloLovecViewModel = viewModel(), navController:
                 modifier = Modifier.weight(1.4f),
                 enabled = false
             )
+
         }
         // Start/Stop Timer Button
         Button(
@@ -280,13 +262,11 @@ fun ReportScreen(viewModel: PorociloLovecViewModel = viewModel(), navController:
         DistanceInput(distanceInKm, onDistanceChange = { distanceInKm = it }) // Pass state and updater
 
         var selectedManagerID by remember { mutableStateOf<Int?>(null) } // 🔥 Shranjujemo ID
-
-        // Dropdown za izbiro upravljalca
         DropdownManagers(viewModel) { selectedManagerID = it }
 
         Button(
             onClick = {
-                if (distanceInKm.isNotBlank() && reportText.isNotBlank() && selectedManagerID != null) {
+                if (reportText.isNotBlank() && selectedManagerID != null) {
                     val distance = distanceInKm.toFloatOrNull() ?: 0f
 
                     viewModel.submitReport(
@@ -299,7 +279,7 @@ fun ReportScreen(viewModel: PorociloLovecViewModel = viewModel(), navController:
                     navController.navigate("History")
                     Toast.makeText(context, "Poročilo uspešno oddano", Toast.LENGTH_SHORT).show()
                 } else {
-                    Toast.makeText(context, "Izpolnite vsa polja", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Nekatera polja so neizpolnjena", Toast.LENGTH_SHORT).show()
                     Log.d("AAA", "Manjkajoči podatki: $distanceInKm, $reportText, selectedManagerID=$selectedManagerID")
                 }
             }
@@ -319,15 +299,26 @@ fun updateDuration(fromText: String, toText: String, isButtonActive: Boolean, on
         try {
             val format = SimpleDateFormat("HH:mm", Locale.getDefault())
             val start = format.parse(fromText)!!
-            val end = if (toText.isNotBlank()) format.parse(toText)!! else if (isButtonActive) Date() else return
+            val end = when {
+                toText.isNotBlank() -> format.parse(toText)!!
+                isButtonActive -> Date() // Če je štoparica aktivna, uporabi trenutni čas
+                else -> return // Ne računaj trajanja, če ni ciljne ure in gumb ni aktiven
+            }
+
             val diff = end.time - start.time
             val minutes = (diff / (1000 * 60)).toInt()
             val hours = minutes / 60
             val remainingMinutes = minutes % 60
-            onUpdate("Trajanje: $hours ur $remainingMinutes min")
-        } catch (_: Exception) { }
+
+            val newDuration = "$hours ur $remainingMinutes min"
+            Log.e("CCC", "Updated duration: $newDuration")
+            onUpdate(newDuration) // Tu se durationText spremeni!
+        } catch (e: Exception) {
+            Log.e("CCC", "Napaka pri analizi časa: ${e.message}")
+        }
     }
 }
+
 
 // Funkcija za upravljanje časa
 fun manageTimer(
@@ -357,7 +348,7 @@ fun manageTimer(
             onElapsedMinutesChanged(elapsedTimeInMinutes)
 
             // Posodobi trajanje v besedilu
-            onDurationTextChanged("Trajanje: $hours ur $minutes min")
+            onDurationTextChanged("$hours ur $minutes min")
         }
     } else {
         // Ko je timer ustavljen, nastavi "to" čas in trajanje
@@ -371,7 +362,7 @@ fun manageTimer(
             val elapsedTimeInMinutes = ((currentTime.time - startTime.time) / (1000 * 60)).toInt()
             val hours = elapsedTimeInMinutes / 60
             val minutes = elapsedTimeInMinutes % 60
-            onDurationTextChanged("Trajanje: $hours ur $minutes min")
+            onDurationTextChanged("$hours ur $minutes min")
         }
     }
 }
