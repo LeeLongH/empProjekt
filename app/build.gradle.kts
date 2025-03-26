@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     //kotlin("plugin.serialization") version "2.1.0"
     id("com.google.devtools.ksp")
+    alias(libs.plugins.google.gms.google.services)
     //id("androidx.room") // Add the Room plugin here
 
 }
@@ -66,6 +67,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.firebase.database)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -88,6 +90,8 @@ dependencies {
 
 
     implementation (libs.gson.v288)
+
+
 
 
 
