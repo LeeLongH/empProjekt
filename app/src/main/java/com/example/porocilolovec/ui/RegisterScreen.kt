@@ -1,5 +1,6 @@
 package com.example.porocilolovec.ui
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,6 +26,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+
+
+
 
 @Composable
 fun RegisterScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: NavController) {
@@ -66,28 +70,31 @@ fun RegisterScreen(viewModel: PorociloLovecViewModel = viewModel(), navControlle
 
         Row {
             Row {
-                RadioButton(selected = profession == "Cuvaj", onClick = { profession = "Cuvaj" })
-                Text(text = "Cuvaj")
+                RadioButton(selected = profession == "lovec", onClick = { profession = "lovec" })
+                Text(text = "Lovec")
             }
             Row {
-                RadioButton(selected = profession == "Upravljalec", onClick = { profession = "Upravljalec" })
-                Text(text = "Upravljalec")
+                RadioButton(selected = profession == "gospodar", onClick = { profession = "gospodar" })
+                Text(text = "Gospodar")
+            }
+            Row {
+                RadioButton(selected = profession == "staresina", onClick = { profession = "staresina" })
+                Text(text = "Staresina")
             }
         }
 
         Button(onClick = {
             if (fullName.isNotBlank() && email.isNotBlank() && password.isNotBlank() && profession.isNotBlank()) {
-                // Create the User object
-                val user = User(userID = 0, fullName = fullName, email = email, password = password, profession = profession, workRequests = "")
+                val user = User(fullName = fullName, email = email, password = password, profession = profession)
 
-                // Register the user
                 viewModel.registerUser(user)
-
-                // Save user data
                 viewModel.saveUserData(context, user)
 
                 Toast.makeText(context, "User Registered!", Toast.LENGTH_SHORT).show()
-                navController.navigate("Login")
+                if (profession == "lovec")
+                    navController.navigate("Search")
+                else
+                    navController.navigate("Home")
             } else {
                 Toast.makeText(context, "Fill all fields!", Toast.LENGTH_SHORT).show()
             }
@@ -99,12 +106,8 @@ fun RegisterScreen(viewModel: PorociloLovecViewModel = viewModel(), navControlle
             Text("Go to Login")
         }
 
-        Button(onClick = {
-            viewModel.clearUserData(context)  // Clear user data if needed
-        }) {
+        Button(onClick = { viewModel.clearUserData(context) }) {
             Text("Clear User Data")
         }
     }
-    //context.deleteDatabase("DB4")
-
 }

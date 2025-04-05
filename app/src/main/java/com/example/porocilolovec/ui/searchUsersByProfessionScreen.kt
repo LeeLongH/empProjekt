@@ -40,13 +40,10 @@ fun SearchUsersByProfessionScreen(
 ) {
     val context = LocalContext.current
 
-    // Get the current user's profession using the ViewModel function
-    val currentProfession = viewModel.getCurrentUserProfession()
-
-    // Trigger the search when the screen is launched
-    LaunchedEffect(currentProfession) {
-        // Pass the current profession to the search function
-        viewModel.searchUsersByProfession(currentProfession)
+    LaunchedEffect(Unit) {
+        viewModel.getCurrentUserProfession(context) { profession ->
+            viewModel.searchUsersByProfession(profession)
+        }
     }
 
     // Observe users fetched by ViewModel
@@ -136,7 +133,7 @@ fun SearchUsersByProfessionScreen(
             user = selectedUser.value!!,
             onDismiss = { openDialog.value = false },
             onSendRequest = { targetUserId ->
-                viewModel.sendWorkRequest(targetUserId)
+                //viewModel.sendWorkRequest(targetUserId)
                 openDialog.value = false
                 Toast.makeText(context, "Work request sent to ${selectedUser.value?.fullName}", Toast.LENGTH_SHORT).show()
             }
@@ -149,7 +146,7 @@ fun SearchUsersByProfessionScreen(
 fun UserActionDialog(
     user: User,
     onDismiss: () -> Unit,
-    onSendRequest: (Int) -> Unit
+    onSendRequest: (String) -> Unit
 ) {
     androidx.compose.material3.AlertDialog(
         onDismissRequest = onDismiss,
@@ -167,3 +164,5 @@ fun UserActionDialog(
         }
     )
 }
+
+

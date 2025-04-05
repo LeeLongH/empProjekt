@@ -6,44 +6,187 @@ import androidx.room.Query
 import androidx.room.OnConflictStrategy
 import androidx.room.Update
 import com.example.porocilolovec.ui.User
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 
 
 @Dao
 interface UserDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertUser(user: User): Long
 
-    @Query("SELECT * FROM users WHERE userID = :userId")
-    suspend fun getUserById(userId: Int): User?
+    fun getUserNameById(userId: String, callback: (String?) -> Unit) {
+        val userRef = FirebaseDatabase.getInstance().getReference("users").child(userId)
 
-    @Query("SELECT fullName FROM users WHERE userID = :userId")
-    suspend fun getUserNameById(userId: Int): String?  // userId should be Int
+        userRef.child("fullName").get().addOnSuccessListener { snapshot ->
+            callback(snapshot.getValue(String::class.java))
+        }.addOnFailureListener {
+            callback(null)
+        }
+    }
 
-    @Query("SELECT * FROM users WHERE email = :email AND password = :password")
-    suspend fun getUserByEmailAndPassword(email: String, password: String): User?
+    fun getUserByEmailAndPassword(email: String, password: String, callback: (User?) -> Unit) {
+        val usersRef = FirebaseDatabase.getInstance().getReference("users")
 
-    @Query("SELECT * FROM users WHERE profession != :profession")
-    suspend fun searchUsersByProfession(profession: String): List<User>
+        usersRef.orderByChild("email").equalTo(email)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    for (child in snapshot.children) {
+                        val user = child.getValue(User::class.java)
+                        if (user?.password == password) { // Manual password check
+                            callback(user)
+                            return
+                        }
+                    }
+                    callback(null) // No matching user found
+                }
+                override fun onCancelled(error: DatabaseError) {
+                    callback(null)
+                }
+            })
+    }
 
-    @Query("SELECT * FROM users")
-    suspend fun getAllUsers(): List<User>
+    fun searchUsersByProfession(profession: String, callback: (List<User>) -> Unit) {
+        val usersRef = FirebaseDatabase.getInstance().getReference("users")
 
-    @Query("DELETE FROM users")  // Adjust "users" to your actual table name
-    suspend fun clearTable()
+        usersRef.orderByChild("profession")
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val users = mutableListOf<User>()
+                    for (child in snapshot.children) {
+                        val user = child.getValue(User::class.java)
+                        // Check if user is not null and the profession doesn't match
+                        if (user != null && user.profession != profession) {
+                            users.add(user)
+                        }
+                    }
+                    callback(users)
+                }
 
-    @Query("SELECT workRequests FROM users WHERE userID = :userId")
-    suspend fun getWorkRequests(userId: Int): String?
+                override fun onCancelled(error: DatabaseError) {
+                    callback(emptyList()) // Handle any cancellation or error
+                }
+            })
+    }
 
-    @Query("UPDATE users SET workRequests = workRequests || ' ' || :workRequests WHERE userID = :userId")
-    suspend fun addWorkRequests(userId: Int, workRequests: String)
+    fun clearUsers(callback: (Boolean) -> Unit) {
+        val usersRef = FirebaseDatabase.getInstance().getReference("users")
 
-    @Query("UPDATE users SET workRequests = :updatedRequests WHERE userID = :userId")
-    suspend fun updateWorkRequests(userId: Int, updatedRequests: String)
+        usersRef.removeValue().addOnSuccessListener {
+            callback(true)
+        }.addOnFailureListener {
+            callback(false)
+        }
+    }
 
+    fun getWorkRequests(userId: String, callback: (String?) -> Unit) {
+        val userRef = FirebaseDatabase.getInstance().getReference("users").child(userId)
 
-    @Update
-    suspend fun updateUser(user: User)
+        userRef.child("workRequests").get().addOnSuccessListener { snapshot ->
+            callback(snapshot.getValue(String::class.java))
+        }.addOnFailureListener {
+            callback(null)
+        }
+    }
 
-    @Query("SELECT * FROM users WHERE userID IN (:userIds)")
-    suspend fun getUsersByIds(userIds: List<Int>): List<User>
+    fun addWorkRequests(userId: String, newRequest: String, callback: (Boolean) -> Unit) {
+        val userRef = FirebaseDatabase.getInstance().getReference("users").child(userId)
+
+        userRef.child("workRequests").get().addOnSuccessListener { snapshot ->
+            val existingRequests = snapshot.getValue(String::class.java) ?: ""
+            val updatedRequests = "$existingRequests $newRequest".trim()
+
+            userRef.child("workRequests").setValue(updatedRequests).addOnSuccessListener {
+                callback(true)
+            }.addOnFailureListener {
+                callback(false)
+            }
+        }.addOnFailureListener {
+            callback(false)
+        }
+    }
+
+    fun updateWorkRequests(userId: String, updatedRequests: String, callback: (Boolean) -> Unit) {
+        val userRef = FirebaseDatabase.getInstance().getReference("users").child(userId)
+
+        userRef.child("workRequests").setValue(updatedRequests).addOnSuccessListener {
+            callback(true)
+        }.addOnFailureListener {
+            callback(false)
+        }
+    }
+
+    fun getUsersByIds(userIds: List<String>, callback: (List<User>) -> Unit) {
+        val usersRef = FirebaseDatabase.getInstance().getReference("users")
+        val users = mutableListOf<User>()
+
+        var remaining = userIds.size
+        if (remaining == 0) {
+            callback(emptyList())
+            return
+        }
+
+        for (userId in userIds) {
+            usersRef.child(userId).get().addOnSuccessListener { snapshot ->
+                val user = snapshot.getValue(User::class.java)
+                user?.let { users.add(it) }
+
+                remaining--
+                if (remaining == 0) callback(users) // Return when all queries finish
+            }.addOnFailureListener {
+                remaining--
+                if (remaining == 0) callback(users)
+            }
+        }
+    }
+
+    fun updateUser(user: User, callback: (Boolean) -> Unit) {
+        val userRef = FirebaseDatabase.getInstance().getReference("users").child(user.userID.toString())
+
+        userRef.setValue(user).addOnSuccessListener {
+            callback(true)
+        }.addOnFailureListener {
+            callback(false)
+        }
+    }
+
+    fun getAllUsers(callback: (List<User>) -> Unit) {
+        val usersRef = FirebaseDatabase.getInstance().getReference("users")
+
+        usersRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val users = mutableListOf<User>()
+                for (child in snapshot.children) {
+                    val user = child.getValue(User::class.java)
+                    user?.let { users.add(it) }
+                }
+                callback(users)
+            }
+            override fun onCancelled(error: DatabaseError) {
+                callback(emptyList()) // Handle errors
+            }
+        })
+    }
+
+    fun insertUser(user: User, callback: (Boolean) -> Unit) {
+        val userId = user.userID.toString()
+        val userRef = FirebaseDatabase.getInstance().getReference("users").child(userId)
+
+        userRef.setValue(user).addOnSuccessListener {
+            callback(true) // Success
+        }.addOnFailureListener {
+            callback(false) // Failure
+        }
+    }
+
+    fun getUserById(userId: String, callback: (User?) -> Unit) {
+        val userRef = FirebaseDatabase.getInstance().getReference("users").child(userId)
+        userRef.get().addOnSuccessListener { snapshot ->
+            val user = snapshot.getValue(User::class.java)
+            callback(user)
+        }.addOnFailureListener {
+            callback(null)
+        }
+    }
+
 }

@@ -37,7 +37,7 @@ import java.util.Locale
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 
-
+/*
 @Composable
 fun HistoryScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: NavController) {
     // Zdaj uporabljamo ownReports namesto reports
@@ -178,4 +178,4 @@ fun ReportItem(report: Reports, viewModel: PorociloLovecViewModel) {
         }
     }
 }
-
+*/

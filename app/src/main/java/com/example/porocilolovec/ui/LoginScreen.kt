@@ -37,6 +37,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.porocilolovec.R
 
+
+
 @Composable
 fun LoginScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: NavController) {
     var emailInput by remember { mutableStateOf("") }
@@ -128,3 +130,4 @@ fun LoginScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: 
         }
     }
 }
+

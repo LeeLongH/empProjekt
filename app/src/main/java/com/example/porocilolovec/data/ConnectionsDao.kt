@@ -5,29 +5,101 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.example.porocilolovec.ui.Connections
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 
 @Dao
 interface ConnectionsDao {
 
-    @Query("SELECT connectionID FROM Connections WHERE managerId = :managerId AND workerID = :workerId")
-    suspend fun getConnection(managerId: Int, workerId: Int): Int?
+    fun getConnection(managerId: String, workerId: String, callback: (String?) -> Unit) {
+        val connectionsRef = FirebaseDatabase.getInstance().getReference("connections")
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertConnection(connection: Connections)
+        connectionsRef.orderByChild("managerId").equalTo(managerId)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    for (child in snapshot.children) {
+                        val workerIdInDb = child.child("workerID").getValue(String::class.java)
+                        if (workerIdInDb == workerId) {
+                            callback(child.key) // connectionID
+                            return
+                        }
+                    }
+                    callback(null) // No match found
+                }
+                override fun onCancelled(error: DatabaseError) {
+                    callback(null)
+                }
+            })
+    }
 
-    //@Query("SELECT * FROM Connections WHERE managerID = :managerID")
-    //suspend fun getConnectionsForManager(managerId: Int): List<Connections>
+    fun insertConnection(connection: Connections, callback: (Boolean) -> Unit) {
+        val connectionsRef = FirebaseDatabase.getInstance().getReference("connections")
+        val newConnectionRef = connectionsRef.push() // Generates a unique ID
 
-    @Query("SELECT * FROM Connections WHERE workerID = :workerId")
-    suspend fun getConnectionsForWorker(workerId: Int): List<Connections>
+        newConnectionRef.setValue(connection).addOnSuccessListener {
+            callback(true)
+        }.addOnFailureListener {
+            callback(false)
+        }
+    }
 
-    //@Query("DELETE FROM Connections WHERE managerID = :managerID AND workerID = :workerId")
-    //suspend fun deleteConnection(managerId: Int, workerId: Int)
+    fun getConnectionsForWorker(workerId: String, callback: (List<Connections>) -> Unit) {
+        val connectionsRef = FirebaseDatabase.getInstance().getReference("connections")
+            .orderByChild("workerID").equalTo(workerId)
 
-    @Query("SELECT managerID FROM Connections WHERE workerID = :workerID")
-    suspend fun getManagerIdsForHunter(workerID: Int): List<Int>
+        connectionsRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val connections = mutableListOf<Connections>()
+                for (child in snapshot.children) {
+                    val connection = child.getValue(Connections::class.java)
+                    connection?.let { connections.add(it) }
+                }
+                callback(connections)
+            }
+            override fun onCancelled(error: DatabaseError) {
+                callback(emptyList())
+            }
+        })
+    }
 
-    @Query("SELECT workerID FROM Connections WHERE managerID = :managerID")
-    suspend fun getHunterIdsForManager(managerID: Int): List<Int>
+    fun getManagerIdsForWorker(workerID: String, callback: (List<String>) -> Unit) {
+        val connectionsRef = FirebaseDatabase.getInstance().getReference("connections")
+            .orderByChild("workerID").equalTo(workerID)
+
+        connectionsRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val managerIds = mutableListOf<String>()
+                for (child in snapshot.children) {
+                    val managerId = child.child("managerID").getValue(String::class.java)
+                    managerId?.let { managerIds.add(it) }
+                }
+                callback(managerIds)
+            }
+            override fun onCancelled(error: DatabaseError) {
+                callback(emptyList())
+            }
+        })
+    }
+
+    fun getHunterIdsForManager(managerID: String, callback: (List<String>) -> Unit) {
+        val connectionsRef = FirebaseDatabase.getInstance().getReference("connections")
+            .orderByChild("managerID").equalTo(managerID)
+
+        connectionsRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val workerIds = mutableListOf<String>()
+                for (child in snapshot.children) {
+                    val workerId = child.child("workerID").getValue(String::class.java)
+                    workerId?.let { workerIds.add(it) }
+                }
+                callback(workerIds)
+            }
+            override fun onCancelled(error: DatabaseError) {
+                callback(emptyList())
+            }
+        })
+    }
 
 }

@@ -48,6 +48,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 
 
+/*
+
 @Composable
 fun ManagerReportScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: NavController) {
     var selectedUserId by remember { mutableStateOf<Int?>(null) }
@@ -243,3 +245,4 @@ fun ReportsHunter(report: Reports, viewModel: PorociloLovecViewModel, selectedUs
     }
 }
 
+*/

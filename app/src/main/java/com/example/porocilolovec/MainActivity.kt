@@ -6,8 +6,6 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.lifecycle.ViewModelProvider
-import com.example.porocilolovec.data.OfflineRepo
-import com.example.porocilolovec.data.RoomDB
 import com.example.porocilolovec.data.UserDao
 import com.example.porocilolovec.data.ConnectionsDao
 import com.example.porocilolovec.ui.PorociloLovecViewModel
@@ -18,42 +16,26 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Get Room Database instance
-        val database = RoomDB.getDatabase(applicationContext)
-        val userDao = database.userDao() // Getting the UserDao
-        val reportDao = database.reportDao() // Getting the ReportDao
-        val connectionsDao = database.connectionsDao() // Getting the ConnectionsDao
-
-        // Initialize OfflineRepo with userDao and reportDao
-        val offlineRepo = OfflineRepo(userDao, reportDao, connectionsDao, applicationContext)
-
-        // Pass context to ViewModelFactory
-        val viewModelFactory = PorociloLovecViewModelFactory(offlineRepo, applicationContext)
-
-        // Create ViewModel with the factory
+        val viewModelFactory = PorociloLovecViewModelFactory()
         val viewModel = ViewModelProvider(this, viewModelFactory)[PorociloLovecViewModel::class.java]
+
 
         setContent {
             MainAppTheme {
-                // Pass the ViewModel to the UI (Compose)
-                PorociloLovecApp(viewModel)
+                PorociloLovecApp(viewModel) // ✅ Pass ViewModel to the UI
             }
         }
 
-        // ✅ Use applicationContext directly instead of LocalContext.current
-        val sharedPreferences = applicationContext.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
-        val savedId = sharedPreferences.getInt("USER_ID", -1)
+        // ✅ Retrieve user data from SharedPreferences (if needed)
+        val sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE)
+        val savedId = sharedPreferences.getString("USER_ID", "No ID found")
         val savedName = sharedPreferences.getString("USER_NAME", "No name found")
         val savedEmail = sharedPreferences.getString("USER_EMAIL", "No email found")
-        val savedPassword = sharedPreferences.getString("USER_PASSWORD", "No password found")
         val savedProfession = sharedPreferences.getString("USER_PROFESSION", "No profession found")
 
-        Log.d("LEON", "oncreate User ID: $savedId")
-        Log.d("LEON", "oncreate Name: $savedName")
-        Log.d("LEON", "oncreate Email: $savedEmail")
-        Log.d("LEON", "oncreate Password: $savedPassword")
-        Log.d("LEON", "oncreate Profession: $savedProfession")
-
-
+        Log.d("LEON", "User ID: $savedId")
+        Log.d("LEON", "Name: $savedName")
+        Log.d("LEON", "Email: $savedEmail")
+        Log.d("LEON", "Profession: $savedProfession")
     }
 }

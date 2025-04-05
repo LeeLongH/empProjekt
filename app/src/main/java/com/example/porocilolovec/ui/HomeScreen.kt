@@ -32,12 +32,12 @@ fun HomeScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: N
     val context = LocalContext.current
 
 
-    LaunchedEffect(Unit) {
+   /* LaunchedEffect(Unit) {
         viewModel.getWorkRequests()
-    }
+    }*/
 
     // Observe the workRequests from the ViewModel
-    val workRequestsString = viewModel.workRequests
+    //val workRequestsString = viewModel.workRequests
 
 
 
@@ -48,21 +48,15 @@ fun HomeScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: N
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
+        /*Text(
             text = stringResource(R.string.app_name) + " - Pozdravljeni ${viewModel.getCurrentUserId()}",
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Button(onClick = { navController.navigate(Hierarchy.Search.name) }) {
-            Text(text = stringResource(R.string.title_find_users))
-        }
+        )*/
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        var userProfession = viewModel.getCurrentUserProfession()
+        /*var userProfession = viewModel.getCurrentUserProfession()
         Log.e("USER_PROFESSION", "User profession: $userProfession")
 
         if (userProfession == "Cuvaj") {
@@ -81,14 +75,14 @@ fun HomeScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: N
             }
         }
         Spacer(modifier = Modifier.height(32.dp))
+*/
 
-
-        // Show "Work Requests" button if there are any work requests
+        /*
         if (workRequestsString.isNotEmpty()) {
             Button(onClick = { navController.navigate(Hierarchy.WorkRequests.name) }) {
                 Text(text = "Work Requests")
             }
-        }
+        }*/
 
         Spacer(modifier = Modifier.height(32.dp))
 

@@ -79,13 +79,14 @@ import java.util.Locale
 import androidx.compose.animation.*
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.rememberUpdatedState
-import com.example.porocilolovec.data.OfflineRepo
 import okhttp3.RequestBody
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import org.json.JSONException
 import org.json.JSONObject
 
+
+/*
 @SuppressLint("DefaultLocale")
 @Composable
 fun ReportScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: NavController) {
@@ -718,3 +719,5 @@ fun ScrollIndicator() {
         )
     }
 }
+
+*/
