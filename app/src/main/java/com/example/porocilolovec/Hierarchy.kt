@@ -19,16 +19,16 @@ import androidx.navigation.NavHostController
 import com.example.porocilolovec.ui.RegisterScreen
 import com.example.porocilolovec.ui.LoginScreen
 import com.example.porocilolovec.ui.HomeScreen
-
+import com.example.porocilolovec.ui.LoginRegisterLogoutScreen
 import com.example.porocilolovec.ui.SearchUsersByProfessionScreen
+import com.example.porocilolovec.ui.WorkRequestsScreen
+
 
 /*
 
 import com.example.porocilolovec.ui.HistoryScreen
-import com.example.porocilolovec.ui.LoginRegisterLogoutScreen
 
 import com.example.porocilolovec.ui.ReportScreen
-import com.example.porocilolovec.ui.WorkRequestsScreen
 import com.example.porocilolovec.ui.ManagerReportScreen
 */
 enum class Hierarchy {
@@ -107,16 +107,6 @@ fun PorociloLovecApp(
 
 @Composable
 fun ManagerReportScreen(viewModel: PorociloLovecViewModel, navController: NavHostController) {
-    TODO("Not yet implemented")
-}
-
-@Composable
-fun WorkRequestsScreen(viewModel: PorociloLovecViewModel, navController: NavHostController) {
-    TODO("Not yet implemented")
-}
-
-@Composable
-fun LoginRegisterLogoutScreen(viewModel: PorociloLovecViewModel, navController: NavHostController) {
     TODO("Not yet implemented")
 }
 

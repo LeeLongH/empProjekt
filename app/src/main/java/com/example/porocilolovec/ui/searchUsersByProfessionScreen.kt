@@ -32,7 +32,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.platform.LocalContext
 
 
-
 @Composable
 fun SearchUsersByProfessionScreen(
     viewModel: PorociloLovecViewModel = viewModel(),
@@ -57,6 +56,21 @@ fun SearchUsersByProfessionScreen(
     fun onUserClick(user: User) {
         selectedUser.value = user
         openDialog.value = true
+    }
+
+    // Handle the dialog result and navigate after action
+    if (openDialog.value && selectedUser.value != null) {
+        UserActionDialog(
+            user = selectedUser.value!!,
+            onDismiss = { openDialog.value = false },
+            onSendRequest = { targetUserId ->
+                viewModel.sendWorkRequest(context, targetUserId)
+                openDialog.value = false
+                Toast.makeText(context, "Work request sent to ${selectedUser.value?.fullName}", Toast.LENGTH_SHORT).show()
+                // After sending the request, navigate to Home
+                navController.navigate("Home") // This is where you should navigate after the action.
+            }
+        )
     }
 
     Column(
@@ -119,28 +133,8 @@ fun SearchUsersByProfessionScreen(
                 }
             }
         }
-
-        Button(
-            onClick = { navController.navigate("Home") },
-            modifier = Modifier.align(Alignment.End)
-        ) {
-            Text(text = "Go to Home")
-        }
-    }
-
-    if (openDialog.value && selectedUser.value != null) {
-        UserActionDialog(
-            user = selectedUser.value!!,
-            onDismiss = { openDialog.value = false },
-            onSendRequest = { targetUserId ->
-                //viewModel.sendWorkRequest(targetUserId)
-                openDialog.value = false
-                Toast.makeText(context, "Work request sent to ${selectedUser.value?.fullName}", Toast.LENGTH_SHORT).show()
-            }
-        )
     }
 }
-
 
 @Composable
 fun UserActionDialog(
@@ -153,7 +147,7 @@ fun UserActionDialog(
         title = { Text(text = "Work Request Options") },
         text = { Text(text = "Do you want to send a work request to ${user.fullName}?") },
         confirmButton = {
-            Button(onClick = { onSendRequest(user.userID) }) { // Pass target user ID
+            Button(onClick = { onSendRequest(user.userID) }) {
                 Text("Send Request")
             }
         },

@@ -51,7 +51,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 
-/*
 @Composable
 fun WorkRequestsScreen(
     viewModel: PorociloLovecViewModel = viewModel(),
@@ -60,15 +59,15 @@ fun WorkRequestsScreen(
     val context = LocalContext.current
 
     // Fetch the work requests (a space-separated string of user IDs)
-    val workRequestsString = viewModel.workRequests
+    val workRequestsString by viewModel.workRequests.collectAsState() // Observe the StateFlow for work requests
 
     // Log the fetched work requests string for debugging
     LaunchedEffect(workRequestsString) {
-        Log.d("HomeScreen", "Fetched Work Requests: $workRequestsString")
+        Log.d("WorkRequestsScreen", "Fetched Work Requests: $workRequestsString")
     }
 
-    // Convert space-separated string into a list of user IDs
-    val userIds = workRequestsString.split(" ").mapNotNull { it.toIntOrNull() }
+    // Convert the work request string to a list of user IDs
+    val userIds = workRequestsString.split(" ").mapNotNull { it.toIntOrNull() }.map { it.toString() }
 
     // Fetch users by their IDs (trigger fetching)
     LaunchedEffect(userIds) {
@@ -82,7 +81,7 @@ fun WorkRequestsScreen(
 
     // Ensure work requests are fetched when screen loads
     LaunchedEffect(Unit) {
-        viewModel.getWorkRequests() // Fetch the work requests from the ViewModel
+        viewModel.getWorkRequests(context) // Fetch the work requests from the ViewModel
     }
 
     // If no valid work requests exist, show a message and allow navigation home
@@ -109,18 +108,18 @@ fun WorkRequestsScreen(
 
     // State for showing the dialog
     val openDialog = remember { mutableStateOf(false) }
-    val selectedUserId = remember { mutableStateOf<Int?>(null) }
+    val selectedUserId = remember { mutableStateOf<String?>(null) }
 
     // Handle user card click
-    fun onUserClick(userId: Int) {
+    fun onUserClick(userId: String) {
         selectedUserId.value = userId
         openDialog.value = true
     }
 
     // Function to handle rejection and update the UI
-    fun onRejectRequest(userId: Int) {
+    fun onRejectRequest(userId: String) {
         // Reject the work request and update the UI
-        viewModel.rejectWorkRequest(userId.toString())
+        viewModel.rejectWorkRequest(context, userId) // Pass context and userId
         Toast.makeText(context, "Work request rejected from User ID $userId", Toast.LENGTH_SHORT).show()
 
         // Remove the rejected user from the list
@@ -196,8 +195,9 @@ fun WorkRequestsScreen(
             userId = selectedUserId.value!!,
             onDismiss = { openDialog.value = false },
             onAcceptRequest = { targetUserId ->
-                viewModel.viewModelScope.launch {  // Launch coroutine
-                    viewModel.acceptWorkRequest(targetUserId)
+                // Launch coroutine to accept work request
+                viewModel.viewModelScope.launch {
+                    viewModel.acceptWorkRequest(context, targetUserId) // Pass context and userId
                     openDialog.value = false
                     Toast.makeText(context, "Work request accepted from User ID $targetUserId", Toast.LENGTH_SHORT).show()
                 }
@@ -216,9 +216,9 @@ fun WorkRequestsScreen(
 
 @Composable
 fun UserActionDialog(
-    userId: Int,
+    userId: String,
     onDismiss: () -> Unit,
-    onAcceptRequest: (Int) -> Unit,
+    onAcceptRequest: (String) -> Unit,
     onRejectRequest: () -> Unit
 ) {
     androidx.compose.material3.AlertDialog(
@@ -237,4 +237,3 @@ fun UserActionDialog(
         }
     )
 }
-*/

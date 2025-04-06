@@ -105,6 +105,7 @@ fun LoginScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: 
                     viewModel.loginUser(emailInput, passwordInput, context) { user ->
                         if (user != null) {
                             Toast.makeText(context, "Welcome ${user.fullName}!", Toast.LENGTH_SHORT).show()
+                            viewModel.saveUserData(context, user)
                             navController.navigate("Home")
                         } else {
                             Toast.makeText(context, "Invalid credentials. Please try again.", Toast.LENGTH_SHORT).show()
@@ -124,6 +125,8 @@ fun LoginScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: 
 
         Button(
             onClick = { navController.navigate("Register") },
+            //onClick = { navController.navigate("Search") },
+
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text("I want to register")

@@ -87,8 +87,7 @@ fun RegisterScreen(viewModel: PorociloLovecViewModel = viewModel(), navControlle
             if (fullName.isNotBlank() && email.isNotBlank() && password.isNotBlank() && profession.isNotBlank()) {
                 val user = User(fullName = fullName, email = email, password = password, profession = profession)
 
-                viewModel.registerUser(user)
-                viewModel.saveUserData(context, user)
+                viewModel.registerUser(user, context)
 
                 Toast.makeText(context, "User Registered!", Toast.LENGTH_SHORT).show()
                 if (profession == "lovec")

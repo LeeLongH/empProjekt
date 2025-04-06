@@ -9,7 +9,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
 data class User(
-    val userID: String = "",  // Firebase-generated ID (instead of Int)
+    var userID: String = "",  // Firebase-generated ID (instead of Int)
     val fullName: String = "",
     val profession: String = "",
     val email: String = "",

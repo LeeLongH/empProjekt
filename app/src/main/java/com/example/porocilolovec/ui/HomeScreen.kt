@@ -13,6 +13,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -24,6 +26,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.porocilolovec.R
 import com.example.porocilolovec.Hierarchy
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 
 
@@ -31,16 +35,25 @@ import com.example.porocilolovec.Hierarchy
 fun HomeScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: NavController) {
     val context = LocalContext.current
 
+    // Fetch current user data on screen load
+    LaunchedEffect(Unit) {
+        viewModel.getCurrentUserId(context) // Fetch user ID
+        viewModel.getCurrentUserProfession(context) { profession ->
+            // Handle the profession result here
+            // The profession is updated in the ViewModel, so you can observe it
+            Log.d("HomeScreen", "User profession: $profession")
+        }
+    }
 
-   /* LaunchedEffect(Unit) {
-        viewModel.getWorkRequests()
-    }*/
+    // Observe the currentUserId and userProfession
+    val currentUserId = viewModel.currentUserId.collectAsState().value
+    val userProfession = viewModel.currentUserProfession.collectAsState().value
+    val workRequests = viewModel.workRequests.collectAsState().value // Collecting work requests
 
-    // Observe the workRequests from the ViewModel
-    //val workRequestsString = viewModel.workRequests
+    // Check if there are work requests and display a button for accepting
+    val hasWorkRequests = workRequests.isNotEmpty()
 
-
-
+    // UI to display the user ID, profession and additional buttons
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -48,47 +61,47 @@ fun HomeScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: N
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        /*Text(
-            text = stringResource(R.string.app_name) + " - Pozdravljeni ${viewModel.getCurrentUserId()}",
-            fontSize = 24.sp,
+        Text(
+            text = "Current User ID: $currentUserId",
+            fontSize = 20.sp,
             fontWeight = FontWeight.Bold
-        )*/
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        /*var userProfession = viewModel.getCurrentUserProfession()
-        Log.e("USER_PROFESSION", "User profession: $userProfession")
+        Text(
+            text = "User Profession: ${userProfession ?: "Unknown"}",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold
+        )
 
-        if (userProfession == "Cuvaj") {
-            Button(onClick = { navController.navigate(Hierarchy.Report.name) }) {
-                Text(text = stringResource(R.string.text_write_report))
+        // Conditionally show buttons based on profession
+        when (userProfession) {
+            "lovec" -> {
+                Button(onClick = { navController.navigate(Hierarchy.Report.name) }) {
+                    Text(text = stringResource(R.string.text_write_report))
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(onClick = { navController.navigate(Hierarchy.History.name) }) {
+                    Text(text = stringResource(R.string.title_history_report))
+                }
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Button(onClick = { navController.navigate(Hierarchy.History.name) }) {
-                Text(text = stringResource(R.string.title_history_report))
-            }
-        }else if (userProfession == "Upravljalec") {
-            Button(onClick = { navController.navigate(Hierarchy.ManagerReportView.name) }) {
-                Text(text = "Ogled poročil")
+            "staresina", "gospodar" -> {
+                Button(onClick = { navController.navigate(Hierarchy.ManagerReportView.name) }) {
+                    Text(text = "Ogled poročil")
+                }
             }
         }
-        Spacer(modifier = Modifier.height(32.dp))
-*/
 
-        /*
-        if (workRequestsString.isNotEmpty()) {
-            Button(onClick = { navController.navigate(Hierarchy.WorkRequests.name) }) {
-                Text(text = "Work Requests")
+        // If there are work requests, show a button to accept work requests
+        if (hasWorkRequests) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(onClick = {
+                navController.navigate(Hierarchy.Home.name) }) {
+                Text(text = "Accept Work Requests")
             }
-        }*/
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Button(onClick = { navController.navigate(Hierarchy.LoginRegister.name) }) {
-            Text(text = stringResource(R.string.btn_login_register))
         }
     }
 }
-

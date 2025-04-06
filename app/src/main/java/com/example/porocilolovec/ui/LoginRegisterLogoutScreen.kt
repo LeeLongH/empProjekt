@@ -22,11 +22,11 @@ import com.example.porocilolovec.R
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 
-/*
+
 @Composable
 fun LoginRegisterLogoutScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: NavController) {
 
-    var showDialog by remember { mutableStateOf(false) }  // Add this line
+    var showDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -93,4 +93,3 @@ fun LoginRegisterLogoutScreen(viewModel: PorociloLovecViewModel = viewModel(), n
     }
 
 }
-*/
