@@ -2,22 +2,14 @@ package com.example.porocilolovec.ui
 
 import android.content.Context
 import android.util.Log
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.google.firebase.Firebase
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import java.util.UUID
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
-
 
 class PorociloLovecViewModel : ViewModel() {
 
@@ -212,17 +204,31 @@ class PorociloLovecViewModel : ViewModel() {
         }
     }
 
-    fun getWorkRequests(context: Context) {
-        // Assuming you're using Firebase Firestore
-        val userId = getCurrentUserId(context)  // Retrieve user ID from SharedPreferences or elsewhere
+    fun getWorkRequests(context: Context, callback: (String?) -> Unit) {
+        val userId = getCurrentUserId(context) // 🔁 Make sure this returns the actual Firestore doc ID
 
-        // Fetch the user's work requests from Firestore (replace with actual logic)
         val userDoc = Firebase.firestore.collection("users").document(userId.toString())
-        userDoc.get().addOnSuccessListener { document ->
-            val workRequestsString = document.getString("workRequests") ?: ""
-            _workRequests.value = workRequestsString  // Update the work requests string
-        }
+        Log.d("Firestore", "✅ userId matching? : $userId")
+
+        userDoc.get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val workRequests = document.getString("workRequests")
+                    Log.d("Firestore", "✅ Work Requests: $workRequests")
+                    callback(workRequests)  // Pass the result to the callback
+                } else {
+                    Log.d("Firestore", "❌ No such document with ID: $userId")
+                    callback(null)  // No document found, pass null
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("Firestore", "❌ Error fetching document: ${e.message}", e)
+                callback(null)  // If there is an error, pass null
+            }
     }
+
+
+
 
 
     // Reject a work request and update the workRequests field
@@ -302,11 +308,11 @@ class PorociloLovecViewModel : ViewModel() {
     }
 
     // Fetch user ID from SharedPreferences
-    fun getCurrentUserId(context: Context) {
+    fun getCurrentUserId(context: Context): String {
         val sharedPreferences = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
-        val userId = sharedPreferences.getString("USER_ID", "") ?: ""
-        _currentUserId.value = userId
+        return sharedPreferences.getString("USER_ID", "") ?: ""
     }
+
 
     // Fetch user profession from SharedPreferences or Firestore
     fun getCurrentUserProfession(context: Context, onResult: (String?) -> Unit) {

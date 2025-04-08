@@ -1,6 +1,5 @@
 package com.example.porocilolovec.ui
 
-import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -48,10 +47,6 @@ fun HomeScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: N
     // Observe the currentUserId and userProfession
     val currentUserId = viewModel.currentUserId.collectAsState().value
     val userProfession = viewModel.currentUserProfession.collectAsState().value
-    val workRequests = viewModel.workRequests.collectAsState().value // Collecting work requests
-
-    // Check if there are work requests and display a button for accepting
-    val hasWorkRequests = workRequests.isNotEmpty()
 
     // UI to display the user ID, profession and additional buttons
     Column(
@@ -95,13 +90,31 @@ fun HomeScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: N
             }
         }
 
-        // If there are work requests, show a button to accept work requests
-        if (hasWorkRequests) {
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = {
-                navController.navigate(Hierarchy.Home.name) }) {
-                Text(text = "Accept Work Requests")
+        var workRequests by remember { mutableStateOf<String?>(null) }
+
+        // Fetch work requests when the Composable is first launched
+        LaunchedEffect(Unit) {
+            // Call getWorkRequests and handle success/failure in the callback
+            viewModel.getWorkRequests(context) { result ->
+                workRequests = result
             }
         }
+
+        // UI
+        Column(modifier = Modifier.padding(16.dp)) {
+            if (!workRequests.isNullOrEmpty()) {  // Show button if workRequests is not empty
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(onClick = {
+                    navController.navigate(Hierarchy.WorkRequests.name)  // Navigate to home
+                }) {
+                    Text(text = "Accept Work Requests")
+                }
+            } else {
+                // Optionally show some text when no work requests are available
+                Text(text = "No work requests available.")
+            }
+        }
+
+
     }
 }
