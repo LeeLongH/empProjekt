@@ -1,35 +1,34 @@
 package com.example.porocilolovec.ui
 
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
-import com.google.firebase.Firebase
+import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.firestore
+import com.google.gson.Gson
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.tasks.await
+import kotlin.text.get
 
 class PorociloLovecViewModel : ViewModel() {
 
     private val db = FirebaseFirestore.getInstance()
 
-    /*private val _workRequests = MutableStateFlow("")
-    val workRequests: StateFlow<String> get() = _workRequests*/
-
-    private val _workRequests = MutableStateFlow<String>("")
-    val workRequests: StateFlow<String> = _workRequests
-
     private val _usersByIds = MutableStateFlow<List<User>>(emptyList())
     val usersByIds: StateFlow<List<User>> get() = _usersByIds
 
-    private val _currentUserId = MutableStateFlow("")
-    val currentUserId: StateFlow<String> = _currentUserId
+
 
     private val _currentUserProfession = MutableStateFlow("")
     val currentUserProfession: StateFlow<String> = _currentUserProfession
-
 
     fun registerUser(user: User, context: Context) {
         val counterRef = db.collection("counters").document("users")
@@ -67,7 +66,6 @@ class PorociloLovecViewModel : ViewModel() {
         }
     }
 
-
     fun saveUserData(context: Context, user: User) {
         val sharedPreferences = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
         with(sharedPreferences.edit()) {
@@ -76,11 +74,28 @@ class PorociloLovecViewModel : ViewModel() {
             putString("USER_EMAIL", user.email)
             putString("USER_PASSWORD", user.password)
             putString("USER_PROFESSION", user.profession)
-            apply()
+            commit()  // Using commit() to ensure immediate persistence
         }
-        Log.d("PorociloLovecViewModel", "preferences USER_ID: ${user.userID}")
-
+        Log.d("PorociloLovecViewModel", "preferences USER_ID: ${user.userID}, USER_PROFESSION: ${user.profession}")
     }
+
+    private val _currentUserId = MutableStateFlow("")
+    val currentUserId: StateFlow<String> = _currentUserId
+
+    private val _currentUserFullName = MutableStateFlow("")
+    val currentUserFullName: StateFlow<String> = _currentUserFullName
+
+    fun getCurrentUserId(context: Context) {
+        val user = getUserFromPreferences(context)
+        _currentUserId.value = user?.userID ?: ""
+    }
+
+    fun getCurrentUserFullName(context: Context) {
+        val user = getUserFromPreferences(context)
+        _currentUserFullName.value = user?.fullName ?: "Unknown"
+    }
+
+
 
     fun clearUserData(context: Context) {
         val sharedPreferences = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
@@ -91,7 +106,7 @@ class PorociloLovecViewModel : ViewModel() {
     }
 
     // LOGIN
-    fun loginUser(email: String, password: String, context: Context, callback: (User?) -> Unit) {
+    fun loginUser(email: String, password: String, callback: (User?) -> Unit) {
         val usersCollection = db.collection("users")
 
         usersCollection
@@ -126,10 +141,9 @@ class PorociloLovecViewModel : ViewModel() {
         }
 
         val professionsToSearch = when (profession.lowercase()) {
-            "lovec" -> listOf("gospodar", "staresina")  // When profession is "Lovec", search for "Gospodar" and "Staresina"
-            "gospodar" -> listOf("lovec")               // When profession is "Gospodar", search for "Lovec"
-            "staresina" -> listOf("lovec")              // When profession is "Staresina", search for "Lovec"
-            else -> listOf(profession)                  // Otherwise, search for the provided profession
+            "lovec" -> listOf("gospodar", "staresina")
+            "gospodar", "staresina" -> listOf("lovec")
+            else -> listOf(profession.lowercase())
         }
 
         db.collection("users")
@@ -140,141 +154,55 @@ class PorociloLovecViewModel : ViewModel() {
                 Log.e("PorociloLovecViewModel", "Found ${users.size} users matching profession(s) $professionsToSearch")
                 _usersByProfession.value = users
             }
-            .addOnFailureListener { e ->
-                Log.e("PorociloLovecViewModel", "❌ Failed to fetch users: ${e.message}")
-                _usersByProfession.value = emptyList()
-            }
+
     }
 
-    // WORK REQUEST
-    fun sendWorkRequest(context: Context, targetUserId: String) {
+        // Fetch user profession from SharedPreferences or Firestore
+    fun getCurrentUserProfession(context: Context, onResult: (String?) -> Unit) {
         val sharedPreferences = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
-        val currentUserId = sharedPreferences.getString("USER_ID", null)
+        val currentUserEmail = sharedPreferences.getString("USER_EMAIL", null)
 
-        // Ensure currentUserId is not null or empty
-        if (currentUserId.isNullOrEmpty()) {
-            Log.e("PorociloLovecViewModel", "❌ Current user ID is null or empty")
+        if (currentUserEmail == null) {
+            _currentUserProfession.value = ""
+            onResult(null)  // Return null if no email found
             return
         }
 
-        // Log the currentUserId to check its value
-        Log.d("PorociloLovecViewModel", "Current user ID: $currentUserId")
-
-        // Proceed with the transaction
-        val userRef = db.collection("users").document(targetUserId)
-
-        db.runTransaction { transaction ->
-            val snapshot = transaction.get(userRef)
-
-            if (!snapshot.exists()) {
-                Log.e(
-                    "PorociloLovecViewModel",
-                    "❌ Target user document does not exist for ID: $targetUserId"
-                )
-                return@runTransaction
-            }
-
-            val currentRequests = snapshot.getString("workRequests") ?: ""
-            Log.d("PorociloLovecViewModel", "Current workRequests: $currentRequests")
-
-            // Check if currentRequests is empty and append currentUserId
-            val updatedRequests = if (currentRequests.isEmpty()) {
-                val newRequests = currentUserId
-                Log.d(
-                    "PorociloLovecViewModel",
-                    "Current workRequests is empty, setting it to: $newRequests"
-                )
-                newRequests
-            } else if (currentRequests.split(" ").contains(currentUserId)) {
-                Log.d("PorociloLovecViewModel", "Current user already in workRequests")
-                currentRequests // Already added
-            } else {
-                val newRequests = "$currentRequests $currentUserId".trim()
-                Log.d("PorociloLovecViewModel", "Updated workRequests: $newRequests")
-                newRequests
-            }
-
-            // Update the workRequests field
-            transaction.update(userRef, "workRequests", updatedRequests)
-
-        }.addOnSuccessListener {
-            Log.d("PorociloLovecViewModel", "✅ Work request sent to user $targetUserId")
-        }.addOnFailureListener { e ->
-            Log.e("PorociloLovecViewModel", "❌ Failed to send work request: ${e.message}")
-        }
-    }
-
-    fun getWorkRequests(context: Context, callback: (String?) -> Unit) {
-        val userId = getCurrentUserId(context) // 🔁 Make sure this returns the actual Firestore doc ID
-
-        val userDoc = Firebase.firestore.collection("users").document(userId.toString())
-        Log.d("Firestore", "✅ userId matching? : $userId")
-
-        userDoc.get()
-            .addOnSuccessListener { document ->
-                if (document.exists()) {
-                    val workRequests = document.getString("workRequests")
-                    Log.d("Firestore", "✅ Work Requests: $workRequests")
-                    callback(workRequests)  // Pass the result to the callback
+        FirebaseFirestore.getInstance().collection("users")
+            .whereEqualTo("email", currentUserEmail)
+            .get()
+            .addOnSuccessListener { documents ->
+                if (!documents.isEmpty) {
+                    val profession = documents.documents[0].getString("profession")
+                    _currentUserProfession.value = profession.toString()
+                    onResult(profession)  // Return the profession via the callback
                 } else {
-                    Log.d("Firestore", "❌ No such document with ID: $userId")
-                    callback(null)  // No document found, pass null
+                    _currentUserProfession.value = ""
+                    onResult(null)  // Return null if no user found
                 }
             }
-            .addOnFailureListener { e ->
-                Log.e("Firestore", "❌ Error fetching document: ${e.message}", e)
-                callback(null)  // If there is an error, pass null
+            .addOnFailureListener {
+                _currentUserProfession.value = ""
+                onResult(null)  // Return null in case of failure
             }
     }
 
-
-
-
-
-    // Reject a work request and update the workRequests field
-    fun rejectWorkRequest(context: Context, requestToRemove: String) {
-        val currentUserId = getCurrentUserId(context)
-
-        if (currentUserId == null) {
-            Log.e("PorociloLovecViewModel", "❌ User is not logged in.")
-            return
-        }
-
-        val userRef = db.collection("users").document(getCurrentUserId(context).toString())
-
-        // Remove the request from the workRequests field
-        userRef.update("workRequests", FieldValue.arrayRemove(requestToRemove))
-            .addOnSuccessListener {
-                Log.d("PorociloLovecViewModel", "✅ Work request removed from user: $requestToRemove")
-            }
-            .addOnFailureListener { e ->
-                Log.e("PorociloLovecViewModel", "❌ Failed to remove work request: ${e.message}", e)
-            }
+    fun getUserProfession(context: Context): String? {
+        val sharedPreferences = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+        return sharedPreferences.getString("USER_PROFESSION", null)
     }
 
-    fun acceptWorkRequest(context: Context, targetUserId: String) {
-        val currentUserId = getCurrentUserId(context)  // Use context here to get the current user ID
+    fun getCurrentUser(context: Context): String? {
+        val sharedPreferences = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+        return sharedPreferences.getString("USER_ID", null)
+    }
 
-        if (currentUserId == null) {
-            Log.e("PorociloLovecViewModel", "❌ User is not logged in.")
-            return
-        }
-
-        // Create a connection in the "connections" collection
-        val connectionRef = db.collection("connections").document()
-
-        // Add the connection between manager (current user) and worker (target user)
-        val connection = Connections(connectionID = connectionRef.id, managerID = getCurrentUserId(context).toString(), workerID = targetUserId)
-
-        connectionRef.set(connection)
-            .addOnSuccessListener {
-                Log.d("PorociloLovecViewModel", "✅ Connection added between $currentUserId and $targetUserId")
-                // After creating connection, remove the work request from the user's field
-                rejectWorkRequest(context, targetUserId)  // Pass context and targetUserId here
-            }
-            .addOnFailureListener { e ->
-                Log.e("PorociloLovecViewModel", "❌ Failed to create connection: ${e.message}", e)
-            }
+    fun getUserFromPreferences(context: Context): User? {
+        val sharedPrefs = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+        val userJson = sharedPrefs.getString("user", null)
+        return if (userJson != null) {
+            Gson().fromJson(userJson, User::class.java)
+        } else null
     }
 
 
@@ -307,52 +235,267 @@ class PorociloLovecViewModel : ViewModel() {
         _usersByIds.value = updatedUsers
     }
 
-    // Fetch user ID from SharedPreferences
-    fun getCurrentUserId(context: Context): String {
-        val sharedPreferences = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
-        return sharedPreferences.getString("USER_ID", "") ?: ""
+
+
+    suspend fun getUserByEmailAndPassword(email: String, password: String): User? {
+        return suspendCancellableCoroutine { continuation ->
+            val usersCollection = db.collection("users")
+
+            usersCollection
+                .whereEqualTo("email", email)
+                .whereEqualTo("password", password)
+                .get()
+                .addOnSuccessListener { documents ->
+                    if (!documents.isEmpty) {
+                        val document = documents.documents[0]
+                        val user = document.toObject(User::class.java)
+                        continuation.resume(user, null)
+                    } else {
+                        continuation.resume(null, null)
+                    }
+                }
+                .addOnFailureListener { e ->
+                    Log.e("PorociloLovecViewModel", "❌ Login failed: ${e.message}", e)
+                    continuation.resume(null, null)
+                }
+        }
     }
 
 
-    // Fetch user profession from SharedPreferences or Firestore
-    fun getCurrentUserProfession(context: Context, onResult: (String?) -> Unit) {
-        val sharedPreferences = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
-        val currentUserEmail = sharedPreferences.getString("USER_EMAIL", null)
+    // ... Other functions ...
 
-        if (currentUserEmail == null) {
-            _currentUserProfession.value = ""
-            onResult(null)  // Return null if no email found
+    fun addConnectionBetweenUsers(context: Context, targetUserId: String) {
+        val connectionsCollection = db.collection("connections")
+
+        val currentUserID = getCurrentUser(context) // implement this to retrieve the current user from SharedPreferences
+        if (currentUserID == null) {
+            Log.e("PorociloLovecViewModel", "Current user not found.")
             return
         }
 
-        FirebaseFirestore.getInstance().collection("users")
-            .whereEqualTo("email", currentUserEmail)
+        val connectionData = hashMapOf(
+            "user1" to currentUserID,
+            "user2" to targetUserId,
+            "timestamp" to FieldValue.serverTimestamp()
+        )
+
+        connectionsCollection
+            .add(connectionData)
+            .addOnSuccessListener {
+                Log.d("PorociloLovecViewModel", "✅ Connection added between ${currentUserID} and $targetUserId")
+            }
+            .addOnFailureListener { e ->
+                Log.e("PorociloLovecViewModel", "❌ Failed to add connection: ${e.message}", e)
+            }
+    }
+
+
+    fun submitReport(
+        context: Context,
+        selectedManagerID: String,
+        text: String,
+        distance: Float,
+        timeOnTerrain: Int
+    ) {
+        val currentUserId = getCurrentUser(context)
+        if (currentUserId == null) {
+            Log.e("PorociloLovecViewModel", "⚠️ Cannot submit report: user ID not found in SharedPreferences.")
+            return
+        }
+
+        val reportsCollection = db.collection("reports")
+
+        val reportData = hashMapOf(
+            "authorID" to currentUserId,
+            "managerID" to selectedManagerID,
+            "text" to text,
+            "distance" to distance,
+            "timeOnTerrain" to timeOnTerrain,
+            "timestamp" to FieldValue.serverTimestamp()
+        )
+
+        reportsCollection
+            .add(reportData)
+            .addOnSuccessListener {
+                Log.d("PorociloLovecViewModel", "✅ Report submitted successfully.")
+            }
+            .addOnFailureListener { e ->
+                Log.e("PorociloLovecViewModel", "❌ Failed to submit report: ${e.message}", e)
+            }
+    }
+
+    suspend fun getConnectedManagerForHunter(hunterId: String): User? {
+        val connectionSnapshot = db.collection("connections")
+            .whereEqualTo("user1", hunterId)
             .get()
-            .addOnSuccessListener { documents ->
-                if (!documents.isEmpty) {
-                    val profession = documents.documents[0].getString("profession")
-                    _currentUserProfession.value = profession.toString()
-                    onResult(profession)  // Return the profession via the callback
-                } else {
-                    _currentUserProfession.value = ""
-                    onResult(null)  // Return null if no user found
-                }
-            }
-            .addOnFailureListener {
-                _currentUserProfession.value = ""
-                onResult(null)  // Return null in case of failure
-            }
+            .await()
+
+        val managerId = connectionSnapshot.documents.firstOrNull()?.getString("user2")
+        return if (managerId != null) {
+            val userSnapshot = db.collection("users").document(managerId).get().await()
+            userSnapshot.toObject(User::class.java)
+        } else null
     }
 
 
 
 
 
+    fun getUserIdFromPrefs(context: Context): String {
+        val sharedPrefs = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+        return sharedPrefs.getString("USER_ID", "") ?: ""
+    }
+
+    fun getUserFullNameFromPrefs(context: Context): String {
+        val sharedPrefs = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+        return sharedPrefs.getString("USER_NAME", "") ?: ""
+    }
+
+    fun getUserProfessionFromPrefs(context: Context): String {
+        val sharedPrefs = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+        return sharedPrefs.getString("USER_PROFESSION", "") ?: ""
+    }
+
+    fun getUserEmailFromPrefs(context: Context): String {
+        val sharedPrefs = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+        return sharedPrefs.getString("USER_EMAIL", "") ?: ""
+    }
+
+
+    private val _userToRegister = mutableStateOf<User?>(null)
+    val userToRegister: State<User?> = _userToRegister
+
+    // Set the user to register
+    fun setUserToRegister(user: User?) {
+        _userToRegister.value = user
+    }
+
+    // Register user after selection
+    fun registerUserAfterSelection(user: User, context: Context) {
+        // Save user data
+        saveUserData(context, user)
+
+        // Perform registration logic (e.g., API call or database insertion)
+        Toast.makeText(context, "User Registered!", Toast.LENGTH_SHORT).show()
+    }
+
+    fun fetchOppositeUsers(context: Context) {
+        val currentProfession = getUserProfessionFromPrefs(context)
+
+        val targetProfession = when (currentProfession) {
+            "Lovec" -> "Gospodar/Staresina"
+            "Gospodar", "Staresina" -> "Lovec"
+            else -> null
+        }
+
+        targetProfession?.let {
+            searchUsersByProfession(it)
+        }
+    }
 
 
 
+    private val _lovci = mutableStateOf<List<User>>(emptyList())
+    val lovci: State<List<User>> = _lovci
 
+    fun fetchLovci() {
+        db.collection("users")
+            .whereEqualTo("profession", "Lovec")
+            .get()
+            .addOnSuccessListener { result ->
+                val users = result.documents.mapNotNull { it.toObject(User::class.java) }
+                Log.d("🔥Firestore", "Fetched ${users.size} Lovci")
+                _lovci.value = users
+            }
+            .addOnFailureListener { e ->
+                Log.e("🔥Firestore", "Failed to fetch Lovci: ${e.message}")
+                _lovci.value = emptyList()
+            }
+    }
 
+    fun createConnection(userId: String, currentUser: User?) {
+        // Check if currentUser is not null
+        if (currentUser != null) {
+            // Create a new connection in Firestore (e.g., in a "connections" collection)
+            val connectionRef = db.collection("connections").document()
 
+            val connection = mapOf(
+                "user1Id" to currentUser.userID,  // Access userID from your custom User class
+                "user2Id" to userId
+            )
+
+            connectionRef.set(connection)
+                .addOnSuccessListener {
+                    Log.d("🔥Firestore", "Connection created successfully between ${currentUser.userID} and $userId")
+                }
+                .addOnFailureListener { e ->
+                    Log.e("🔥Firestore", "Failed to create connection: ${e.message}")
+                }
+        } else {
+            Log.e("🔥Firestore", "Current user is null, cannot create connection")
+        }
+    }
+    fun getCurrentUser(uid: String): User? {
+        val userRef = db.collection("users").document(uid)
+        var currentUser: User? = null
+
+        userRef.get().addOnSuccessListener { document ->
+            if (document.exists()) {
+                currentUser = document.toObject(User::class.java) // This should return the User object
+            } else {
+                Log.e("PorociloLovecViewModel", "User not found in Firestore")
+            }
+        }.addOnFailureListener { e ->
+            Log.e("PorociloLovecViewModel", "Error fetching user: ${e.message}")
+        }
+
+        return currentUser
+    }
+
+    // StateFlow za uporabnike in stanje nalaganja
+    private val _users = MutableStateFlow<List<User>>(emptyList())
+    val users: StateFlow<List<User>> = _users
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading
+
+    init {
+        // Inicializiramo nalaganje uporabnikov ob zagonu ViewModel-a
+        getUsers()
+    }
+
+    // Funkcija za pridobivanje uporabnikov iz Firestore
+    private fun getUsers() {
+        _isLoading.value = true // Nastavimo nalaganje na True
+        viewModelScope.launch {
+            try {
+                val usersList = getUsersFromFirestore() // Pridobivanje uporabnikov
+                _users.value = usersList // Posodobimo seznam uporabnikov
+            } catch (e: Exception) {
+                Log.e("PorociloLovecViewModel", "Error fetching users: ${e.message}")
+            } finally {
+                _isLoading.value = false // Končamo nalaganje
+            }
+        }
+    }
+
+    // Funkcija za asinhrono pridobivanje uporabnikov iz Firestore
+    private suspend fun getUsersFromFirestore(): List<User> {
+        val usersCollection = db.collection("users") // Reference na kolekcijo "users" v Firestore
+
+        // Pridobivanje vseh dokumentov iz Firestore kolekcije "users"
+        val result = usersCollection.get().await() // Uporabimo `await()` za asinhron dostop do podatkov
+
+        // Mapiranje dokumentov na seznam uporabnikov
+        return result.documents.mapNotNull { document ->
+            try {
+                document.toObject(User::class.java)?.apply {
+                    userID = document.id // Nastavimo ID dokumenta kot uporabniški ID
+                }
+            } catch (e: Exception) {
+                Log.e("PorociloLovecViewModel", "Error parsing user data: ${e.message}", e)
+                null // V primeru napake vrnemo null
+            }
+        }
+    }
 }
-

@@ -121,14 +121,14 @@ fun ReportItem(report: Reports, viewModel: PorociloLovecViewModel) {
                 ) {
                     messages.forEach { message ->
                         val senderName = when (message.sender) {
-                            "Hunter" -> "VI"
-                            "Manager" -> selectedUserName ?: "Upravljalec" // Use the selected user name
-                            else -> "Neznano"
+                            "Hunter" -> "You"
+                            "Patron" -> selectedUserName ?: "Patron" // Use the selected user name
+                            else -> "unknown"
                         }
                         Text(
                             text = "$senderName: ${message.message}",
                             fontSize = 14.sp,
-                            fontWeight = if (message.sender == "Manager") FontWeight.Bold else FontWeight.Normal,
+                            fontWeight = if (message.sender == "Patron") FontWeight.Bold else FontWeight.Normal,
                             modifier = Modifier.padding(4.dp)
                         )
                     }

@@ -27,28 +27,16 @@ import com.example.porocilolovec.R
 import com.example.porocilolovec.Hierarchy
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
-
-
-
 @Composable
 fun HomeScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: NavController) {
     val context = LocalContext.current
 
-    // Fetch current user data on screen load
-    LaunchedEffect(Unit) {
-        viewModel.getCurrentUserId(context) // Fetch user ID
-        viewModel.getCurrentUserProfession(context) { profession ->
-            // Handle the profession result here
-            // The profession is updated in the ViewModel, so you can observe it
-            Log.d("HomeScreen", "User profession: $profession")
-        }
-    }
+    // Fetch user data directly from SharedPreferences
+    val currentUserId = viewModel.getUserIdFromPrefs(context)
+    val currentUserFullName = viewModel.getUserFullNameFromPrefs(context)
+    val userProfession = viewModel.getUserProfessionFromPrefs(context)
 
-    // Observe the currentUserId and userProfession
-    val currentUserId = viewModel.currentUserId.collectAsState().value
-    val userProfession = viewModel.currentUserProfession.collectAsState().value
-
-    // UI to display the user ID, profession and additional buttons
+    // UI
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -57,7 +45,7 @@ fun HomeScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: N
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Current User ID: $currentUserId",
+            text = "Full Name: $currentUserFullName",
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold
         )
@@ -65,14 +53,23 @@ fun HomeScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: N
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "User Profession: ${userProfession ?: "Unknown"}",
+            text = "User ID: $currentUserId",
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold
         )
 
-        // Conditionally show buttons based on profession
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "User Profession: $userProfession",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         when (userProfession) {
-            "lovec" -> {
+            "Hunter" -> {
                 Button(onClick = { navController.navigate(Hierarchy.Report.name) }) {
                     Text(text = stringResource(R.string.text_write_report))
                 }
@@ -83,38 +80,20 @@ fun HomeScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: N
                     Text(text = stringResource(R.string.title_history_report))
                 }
             }
-            "staresina", "gospodar" -> {
+
+            "Patron", "Sage" -> {
                 Button(onClick = { navController.navigate(Hierarchy.ManagerReportView.name) }) {
                     Text(text = "Ogled poročil")
                 }
             }
         }
 
-        var workRequests by remember { mutableStateOf<String?>(null) }
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // Fetch work requests when the Composable is first launched
-        LaunchedEffect(Unit) {
-            // Call getWorkRequests and handle success/failure in the callback
-            viewModel.getWorkRequests(context) { result ->
-                workRequests = result
-            }
+        Button(onClick = {
+            navController.navigate(Hierarchy.LoginRegister.name)
+        }) {
+            Text(text = "Register/Login/Logout")
         }
-
-        // UI
-        Column(modifier = Modifier.padding(16.dp)) {
-            if (!workRequests.isNullOrEmpty()) {  // Show button if workRequests is not empty
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(onClick = {
-                    navController.navigate(Hierarchy.WorkRequests.name)  // Navigate to home
-                }) {
-                    Text(text = "Accept Work Requests")
-                }
-            } else {
-                // Optionally show some text when no work requests are available
-                Text(text = "No work requests available.")
-            }
-        }
-
-
     }
 }

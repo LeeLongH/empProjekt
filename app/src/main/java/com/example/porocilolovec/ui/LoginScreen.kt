@@ -11,8 +11,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -102,7 +100,7 @@ fun LoginScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: 
         Button(
             onClick = {
                 if (emailInput.isNotBlank() && passwordInput.isNotBlank()) {
-                    viewModel.loginUser(emailInput, passwordInput, context) { user ->
+                    viewModel.loginUser(emailInput, passwordInput) { user ->
                         if (user != null) {
                             Toast.makeText(context, "Welcome ${user.fullName}!", Toast.LENGTH_SHORT).show()
                             viewModel.saveUserData(context, user)
@@ -125,8 +123,6 @@ fun LoginScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: 
 
         Button(
             onClick = { navController.navigate("Register") },
-            //onClick = { navController.navigate("Search") },
-
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text("I want to register")

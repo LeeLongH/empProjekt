@@ -14,7 +14,6 @@ data class User(
     val profession: String = "",
     val email: String = "",
     val password: String = "",
-    val workRequests: String = ""
 )
 
 data class Reports(
@@ -39,7 +38,7 @@ data class Reports(
 }
 
 data class ChatMessage(
-    val sender: String = "",  // "Manager" or "Guard"
+    val sender: String = "",  // "patron" or "hunter"
     val message: String = "",
     val timestamp: Long = 0L
 )

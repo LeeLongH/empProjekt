@@ -5,6 +5,7 @@ import android.util.Log
 import com.example.porocilolovec.ui.PorociloLovecViewModel
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
@@ -21,14 +22,14 @@ import com.example.porocilolovec.ui.LoginScreen
 import com.example.porocilolovec.ui.HomeScreen
 import com.example.porocilolovec.ui.LoginRegisterLogoutScreen
 import com.example.porocilolovec.ui.SearchUsersByProfessionScreen
-import com.example.porocilolovec.ui.WorkRequestsScreen
+import com.example.porocilolovec.ui.ReportScreen
+import com.google.firebase.firestore.auth.User
 
 
 /*
 
 import com.example.porocilolovec.ui.HistoryScreen
 
-import com.example.porocilolovec.ui.ReportScreen
 import com.example.porocilolovec.ui.ManagerReportScreen
 */
 enum class Hierarchy {
@@ -54,7 +55,7 @@ fun PorociloLovecApp(
     val savedEmail = sharedPreferences.getString("USER_EMAIL", null)
     val savedPassword = sharedPreferences.getString("USER_PASSWORD", null)
 
-    /*LaunchedEffect(savedEmail, savedPassword) {
+    LaunchedEffect(savedEmail, savedPassword) {
         if (!savedEmail.isNullOrEmpty() && !savedPassword.isNullOrEmpty()) {
             val user = viewModel.getUserByEmailAndPassword(savedEmail, savedPassword) // Check DB
             if (user != null) {
@@ -68,7 +69,9 @@ fun PorociloLovecApp(
                 navController.navigate(Hierarchy.Register.name)
             }
         }
-    }*/
+    }
+    val currentUser = remember { mutableStateOf<User?>(null) }
+
 
     NavHost(
         navController = navController,
@@ -96,9 +99,6 @@ fun PorociloLovecApp(
         composable(route = Hierarchy.LoginRegister.name) {
             LoginRegisterLogoutScreen(viewModel = viewModel, navController = navController)
         }
-        composable(route = Hierarchy.WorkRequests.name) {
-            WorkRequestsScreen(viewModel = viewModel, navController = navController)
-        }
         composable(route = Hierarchy.ManagerReportView.name) {
             ManagerReportScreen(viewModel = viewModel, navController = navController)
         }
@@ -112,10 +112,5 @@ fun ManagerReportScreen(viewModel: PorociloLovecViewModel, navController: NavHos
 
 @Composable
 fun HistoryScreen(viewModel: PorociloLovecViewModel, navController: NavHostController) {
-    TODO("Not yet implemented")
-}
-
-@Composable
-fun ReportScreen(viewModel: PorociloLovecViewModel, navController: NavHostController) {
     TODO("Not yet implemented")
 }

@@ -1,6 +1,5 @@
 package com.example.porocilolovec.ui
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -70,30 +69,29 @@ fun RegisterScreen(viewModel: PorociloLovecViewModel = viewModel(), navControlle
 
         Row {
             Row {
-                RadioButton(selected = profession == "lovec", onClick = { profession = "lovec" })
+                RadioButton(selected = profession == "Lovec", onClick = { profession = "Lovec" })
                 Text(text = "Lovec")
             }
             Row {
-                RadioButton(selected = profession == "gospodar", onClick = { profession = "gospodar" })
+                RadioButton(selected = profession == "Gospodar", onClick = { profession = "Gospodar" })
                 Text(text = "Gospodar")
             }
             Row {
-                RadioButton(selected = profession == "staresina", onClick = { profession = "staresina" })
+                RadioButton(selected = profession == "Staresina", onClick = { profession = "Staresina" })
                 Text(text = "Staresina")
             }
         }
 
         Button(onClick = {
             if (fullName.isNotBlank() && email.isNotBlank() && password.isNotBlank() && profession.isNotBlank()) {
+                // Shranite podatke uporabnika za kasnejšo registracijo
                 val user = User(fullName = fullName, email = email, password = password, profession = profession)
 
-                viewModel.registerUser(user, context)
+                // Shranite uporabnika v ViewModel za nadaljnjo obdelavo
+                viewModel.setUserToRegister(user)
 
-                Toast.makeText(context, "User Registered!", Toast.LENGTH_SHORT).show()
-                if (profession == "lovec")
-                    navController.navigate("Search")
-                else
-                    navController.navigate("Home")
+                // Preusmeri na zaslon iskanja
+                navController.navigate("Search")
             } else {
                 Toast.makeText(context, "Fill all fields!", Toast.LENGTH_SHORT).show()
             }
