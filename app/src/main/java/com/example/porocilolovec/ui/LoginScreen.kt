@@ -62,7 +62,7 @@ fun LoginScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: 
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = stringResource(R.string.title_login),
+            text = "login",
             style = TextStyle(fontSize = 35.sp, fontWeight = FontWeight.Bold),
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center
@@ -122,7 +122,7 @@ fun LoginScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: 
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
-            onClick = { navController.navigate("Register") },
+            onClick = { navController.navigate("Report") },
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text("I want to register")

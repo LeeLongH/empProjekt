@@ -42,7 +42,7 @@ fun LoginRegisterLogoutScreen(viewModel: PorociloLovecViewModel = viewModel(), n
         Button(onClick = {
             navController.navigate("Login")
         }) {
-            Text(text = stringResource(R.string.btn_login))
+            Text("login")
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -51,7 +51,7 @@ fun LoginRegisterLogoutScreen(viewModel: PorociloLovecViewModel = viewModel(), n
         Button(onClick = {
             navController.navigate("Register")
         }) {
-            Text(text = stringResource(R.string.btn_register))
+            Text("Register")
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -60,7 +60,7 @@ fun LoginRegisterLogoutScreen(viewModel: PorociloLovecViewModel = viewModel(), n
         Button(onClick = {
             showDialog = true
         }) {
-            Text(text = stringResource(R.string.btn_logout))
+            Text("logout")
         }
     }
 
@@ -68,8 +68,8 @@ fun LoginRegisterLogoutScreen(viewModel: PorociloLovecViewModel = viewModel(), n
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
-            title = { Text(text = stringResource(R.string.logout_confirmation)) },
-            text = { Text(text = stringResource(R.string.logout_message)) },
+            title = { Text("logout") },
+            text = { Text("soue you want to logout") },
             confirmButton = {
                 Button(onClick = {
                     // Clear session data
@@ -81,12 +81,12 @@ fun LoginRegisterLogoutScreen(viewModel: PorociloLovecViewModel = viewModel(), n
                         popUpTo(0) // Clears the back stack so the user can't go back
                     }
                 }) {
-                    Text(text = stringResource(R.string.confirm))
+                    Text("logout")
                 }
             },
             dismissButton = {
                 Button(onClick = { showDialog = false }) {
-                    Text(text = stringResource(R.string.cancel))
+                    Text("cancel")
                 }
             }
         )

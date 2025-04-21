@@ -40,10 +40,9 @@ import androidx.compose.material3.Text
 /*
 @Composable
 fun HistoryScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: NavController) {
-    // Zdaj uporabljamo ownReports namesto reports
+
     val reports = viewModel.ownReports.collectAsState(initial = emptyList()).value
 
-    // Poskrbimo, da se podatki naložijo
     LaunchedEffect(Unit) {
         viewModel.loadOwnReports()
     }
@@ -56,7 +55,7 @@ fun HistoryScreen(viewModel: PorociloLovecViewModel = viewModel(), navController
             .padding(16.dp)
     ) {
         Text(
-            text = stringResource(R.string.title_history_report),
+            text = "Report history",
             modifier = Modifier.align(Alignment.CenterHorizontally),
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold
@@ -76,7 +75,7 @@ fun HistoryScreen(viewModel: PorociloLovecViewModel = viewModel(), navController
             onClick = { navController.navigate("Home") },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(stringResource(R.string.btn_home_screen))
+            Text("Home page")
         }
     }
 }
@@ -106,13 +105,13 @@ fun ReportItem(report: Reports, viewModel: PorociloLovecViewModel) {
 
             if (expanded) {
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "Kilometri: ${report.distance}")
-                Text(text = "Opis: ${report.text}")
-                Text(text = "Čas na terenu: ${report.timeOnTerrain} min")
+                Text(text = "kilometers: ${report.distance}")
+                Text(text = "description: ${report.text}")
+                Text(text = "time on terrain: ${report.timeOnTerrain} min")
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // **Prikaz pogovora**
+                // **show convo**
                 val messages = report.getResponseList()
                 Column(
                     modifier = Modifier
@@ -136,20 +135,20 @@ fun ReportItem(report: Reports, viewModel: PorociloLovecViewModel) {
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // **Gumb za dodajanje komentarja**
+                // **button to add comment**
                 Button(
                     onClick = { showInputField = !showInputField },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(if (showInputField) "Skrij vnos" else "Dodaj komentar")
+                    Text(if (showInputField) "hide" else add comment")
                 }
 
-                // **Vnosno polje za komentar**
+                // **input field for comment**
                 if (showInputField) {
                     OutlinedTextField(
                         value = newMessage,
                         onValueChange = { newMessage = it },
-                        label = { Text("Vnesi komentar") },
+                        label = { Text("type comment") },
                         modifier = Modifier.fillMaxWidth()
                     )
 
@@ -159,19 +158,19 @@ fun ReportItem(report: Reports, viewModel: PorociloLovecViewModel) {
                         onClick = {
                             if (newMessage.isNotBlank()) {
                                 val newChatMessage = ChatMessage(
-                                    sender = "Hunter", // Čuvar doda sporočilo
+                                    sender = "Hunter", // Hunter adds msg
                                     message = newMessage,
                                     timestamp = System.currentTimeMillis()
                                 )
 
                                 viewModel.addResponseToReport(report, newChatMessage)
-                                newMessage = "" // Po oddaji sporočila počisti vnos
-                                showInputField = false // Skrij vnosno polje
+                                newMessage = "" // after submission clear text
+                                showInputField = false // hide input field
                             }
                         },
                         modifier = Modifier.align(Alignment.End)
                     ) {
-                        Text("Pošlji")
+                        Text("Send")
                     }
                 }
             }

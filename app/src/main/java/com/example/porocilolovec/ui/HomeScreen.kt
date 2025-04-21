@@ -71,19 +71,19 @@ fun HomeScreen(viewModel: PorociloLovecViewModel = viewModel(), navController: N
         when (userProfession) {
             "Hunter" -> {
                 Button(onClick = { navController.navigate(Hierarchy.Report.name) }) {
-                    Text(text = stringResource(R.string.text_write_report))
+                    Text("write report")
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Button(onClick = { navController.navigate(Hierarchy.History.name) }) {
-                    Text(text = stringResource(R.string.title_history_report))
+                    Text("report history")
                 }
             }
 
             "Patron", "Sage" -> {
                 Button(onClick = { navController.navigate(Hierarchy.ManagerReportView.name) }) {
-                    Text(text = "Ogled poročil")
+                    Text(text = "view reports")
                 }
             }
         }

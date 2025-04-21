@@ -73,24 +73,21 @@ fun RegisterScreen(viewModel: PorociloLovecViewModel = viewModel(), navControlle
                 Text(text = "Lovec")
             }
             Row {
-                RadioButton(selected = profession == "Gospodar", onClick = { profession = "Gospodar" })
-                Text(text = "Gospodar")
+                RadioButton(selected = profession == "Patron", onClick = { profession = "Patron" })
+                Text(text = "Patron")
             }
             Row {
-                RadioButton(selected = profession == "Staresina", onClick = { profession = "Staresina" })
-                Text(text = "Staresina")
+                RadioButton(selected = profession == "Sage", onClick = { profession = "Sage" })
+                Text(text = "Sage")
             }
         }
 
         Button(onClick = {
             if (fullName.isNotBlank() && email.isNotBlank() && password.isNotBlank() && profession.isNotBlank()) {
-                // Shranite podatke uporabnika za kasnejšo registracijo
                 val user = User(fullName = fullName, email = email, password = password, profession = profession)
 
-                // Shranite uporabnika v ViewModel za nadaljnjo obdelavo
                 viewModel.setUserToRegister(user)
 
-                // Preusmeri na zaslon iskanja
                 navController.navigate("Search")
             } else {
                 Toast.makeText(context, "Fill all fields!", Toast.LENGTH_SHORT).show()

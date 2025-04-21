@@ -50,37 +50,30 @@ fun SearchUsersByProfessionScreen(
 ) {
     val context = LocalContext.current
 
-    // Pridobimo poklic uporabnika iz SharedPreferences in po tem začnemo iskanje
     LaunchedEffect(Unit) {
         viewModel.getCurrentUserProfession(context) { profession ->
             viewModel.searchUsersByProfession(profession)
         }
     }
 
-    // Spremljamo seznam uporabnikov, pridobljenih iz ViewModel-a
     val users = viewModel.usersByProfession.collectAsState().value
 
-    // Spremenljivke za dialog in izbranega uporabnika
     val openDialog = remember { mutableStateOf(false) }
     val selectedUser = remember { mutableStateOf<User?>(null) }
 
-    // Funkcija, ki se kliče, ko uporabnik klikne na kartico uporabnika
     fun onUserClick(user: User) {
         selectedUser.value = user
         openDialog.value = true
     }
 
-    // Prikaz dialoga za akcijo uporabnika (pošiljanje delovnega zahtevka)
     if (openDialog.value && selectedUser.value != null) {
         UserActionDialog(
             user = selectedUser.value!!,
             onDismiss = { openDialog.value = false },
             onSendRequest = { targetUserId ->
-                // Klic funkcije znotraj Composable funkcije, kjer imamo dostop do LocalContext.current
-                viewModel.addConnectionBetweenUsers(context, targetUserId)  // Klic funkcije z context in targetUserId
+                viewModel.addConnectionBetweenUsers(context, targetUserId)
                 openDialog.value = false
                 Toast.makeText(context, "Work request sent to ${selectedUser.value?.fullName}", Toast.LENGTH_SHORT).show()
-                // Pošiljanje zahtevka, nato navigiramo na domovsko stran
                 navController.navigate("Home")
             }
         )
@@ -96,7 +89,6 @@ fun SearchUsersByProfessionScreen(
             modifier = Modifier.padding(vertical = 8.dp),
         )
 
-        // Preverimo, če so uporabniki na voljo
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -124,7 +116,7 @@ fun SearchUsersByProfessionScreen(
                                 modifier = Modifier.padding(16.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                // Samo besedilo, brez ikon
+
                                 Column {
                                     Text(
                                         text = user.fullName,

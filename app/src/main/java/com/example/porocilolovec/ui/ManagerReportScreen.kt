@@ -59,16 +59,16 @@ fun ManagerReportScreen(viewModel: PorociloLovecViewModel = viewModel(), navCont
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         DropdownMenuWorkers(viewModel) { userId ->
             selectedUserId = userId
-            viewModel.loadReportsForUser(userId) // 🚀 Pravilna funkcija
+            viewModel.loadReportsForUser(userId)
         }
 
 
         Spacer(modifier = Modifier.height(16.dp))
-        Log.e("AAA", "Število poročil: ${reports.size}")
+        Log.e("AAA", "number of reports: ${reports.size}")
         if (selectedUserId != null) {
             LazyColumn {
                 items(reports) { report ->
-                    ReportsHunter(report, viewModel, selectedUserId) // Dodano viewModel
+                    ReportsHunter(report, viewModel, selectedUserId)
                 }
             }
         }
@@ -80,7 +80,7 @@ fun ManagerReportScreen(viewModel: PorociloLovecViewModel = viewModel(), navCont
             onClick = { navController.navigate("Home") },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Nazaj na glavni zaslon")
+            Text("back to home page")
         }
     }
 }
@@ -100,10 +100,10 @@ fun DropdownMenuWorkers(viewModel: PorociloLovecViewModel, onUserSelected: (Int)
     }
 
     Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-        Text(text = "Izberite lovca za ogled poročil:", fontWeight = FontWeight.Bold)
+        Text(text = "choose hunter to view reports:", fontWeight = FontWeight.Bold)
 
         Box(modifier = Modifier.fillMaxWidth().clickable { expanded = true }) {
-            Text(text = selectedUser ?: "Klikni za izbiro", modifier = Modifier.padding(8.dp))
+            Text(text = selectedUser ?: "click for selection", modifier = Modifier.padding(8.dp))
         }
 
         if (expanded) {
@@ -115,7 +115,7 @@ fun DropdownMenuWorkers(viewModel: PorociloLovecViewModel, onUserSelected: (Int)
                     .verticalScroll(rememberScrollState())
             ) {
                 if (userList.isEmpty()) {
-                    Text("Nimate dodanih lovcev")
+                    Text("you dont have hunters")
                 } else {
                     userList.forEach { user ->
                         Text(
@@ -125,7 +125,7 @@ fun DropdownMenuWorkers(viewModel: PorociloLovecViewModel, onUserSelected: (Int)
                                 .clickable {
                                     selectedUser = user.fullName
                                     expanded = false
-                                    onUserSelected(user.userID) // Pridobi poročila
+                                    onUserSelected(user.userID) // get reports
                                 }
                                 .padding(8.dp)
                         )
@@ -168,13 +168,13 @@ fun ReportsHunter(report: Reports, viewModel: PorociloLovecViewModel, selectedUs
 
             if (expanded) {
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "Kilometri: ${report.distance}")
-                Text(text = "Opis: ${report.text}")
-                Text(text = "Čas na terenu: ${report.timeOnTerrain} min")
+                Text(text = "kilometers: ${report.distance}")
+                Text(text = "descirption: ${report.text}")
+                Text(text = "time on terrain: ${report.timeOnTerrain} min")
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // **Prikaz pogovora**
+                // **show conversation**
                 val messages = report.getResponseList()
                 Column(
                     modifier = Modifier
@@ -186,9 +186,9 @@ fun ReportsHunter(report: Reports, viewModel: PorociloLovecViewModel, selectedUs
                 ) {
                     messages.forEach { message ->
                         val senderName = when (message.sender) {
-                            "Manager" -> "VI"
-                            "Hunter" -> selectedUserName ?: "Čuvaj" // Use the selected user name
-                            else -> "Neznano"
+                            "Manager" -> "You"
+                            "Hunter" -> selectedUserName ?: "Hunter" // Use the selected user name
+                            else -> "unknown"
                         }
                         Text(
                             text = "$senderName: ${message.message}",
@@ -201,20 +201,20 @@ fun ReportsHunter(report: Reports, viewModel: PorociloLovecViewModel, selectedUs
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // **Gumb za dodajanje komentarja**
+                // **btn for adding comment**
                 Button(
                     onClick = { showInputField = !showInputField },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(if (showInputField) "Skrij vnos" else "Dodaj poročilu komentar")
+                    Text(if (showInputField) "hide input field" else "add comment")
                 }
 
-                // **Vnosno polje za komentar**
+                // **comment field**
                 if (showInputField) {
                     OutlinedTextField(
                         value = newMessage,
                         onValueChange = { newMessage = it },
-                        label = { Text("Vnesi komentar") },
+                        label = { Text("type comment") },
                         modifier = Modifier.fillMaxWidth()
                     )
 
@@ -225,19 +225,19 @@ fun ReportsHunter(report: Reports, viewModel: PorociloLovecViewModel, selectedUs
                         onClick = {
                             if (newMessage.isNotBlank()) {
                                 val newChatMessage = ChatMessage(
-                                    sender = "Manager", // Lahko preveriš vlogo uporabnika
+                                    sender = "Manager",
                                     message = newMessage,
                                     timestamp = System.currentTimeMillis()
                                 )
 
                                 viewModel.addResponseToReport(report, newChatMessage)
-                                newMessage = "" // Po oddaji sporočila počisti vnos
-                                showInputField = false // Skrij vnosno polje
+                                newMessage = ""
+                                showInputField = false
                             }
                         },
                         modifier = Modifier.align(Alignment.End)
                     ) {
-                        Text("Pošlji")
+                        Text("send")
                     }
                 }
             }

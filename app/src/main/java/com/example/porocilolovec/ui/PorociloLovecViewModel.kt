@@ -383,8 +383,8 @@ class PorociloLovecViewModel : ViewModel() {
         val currentProfession = getUserProfessionFromPrefs(context)
 
         val targetProfession = when (currentProfession) {
-            "Lovec" -> "Gospodar/Staresina"
-            "Gospodar", "Staresina" -> "Lovec"
+            "Hunter" -> "Patron"
+            "Patron", "Sage" -> "Hunter"
             else -> null
         }
 
